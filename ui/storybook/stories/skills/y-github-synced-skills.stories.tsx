@@ -1,7 +1,7 @@
 import { userEvent, within } from "storybook/test";
 import { useEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { COMPANY_ID, SOURCE_ID, installFixtures, type RepositoryScenario } from "../../fixtures/githubSkillSources";
+import { COMPANY_ID, SOURCE_ID, installFixtures, type RepositoryScenario } from "../../fixtures/yGithubSkillSources";
 import { Link, Route, Routes, useNavigate } from "@/lib/router";
 import { SkillSources } from "@/pages/SkillSources";
 

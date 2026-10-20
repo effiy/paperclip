@@ -3,7 +3,7 @@ import { chmod, mkdtemp, readdir, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import type { SkillSourceScanProgress } from '@paperclipai/shared';
-import { parseGitHubSkillRepositoryUrl } from '@paperclipai/shared';
+import { parseGitHubRepositoryUrl } from '@paperclipai/shared';
 import { unprocessable } from '../errors.js';
 import { buildGitAuthInvocation } from './git-credentials.js';
 import { MAX_REPOSITORY_BYTES, MAX_REPOSITORY_FILES } from './skill-repository-package.js';
@@ -235,8 +235,8 @@ function acquire(cached: NonNullable<ReturnType<typeof snapshots.get>>, key: str
 /** Caller authorization must be resolved before every invocation, including cache hits. */
 export async function openGitSkillSnapshot(input: { repositoryUrl: string; ref: string; commitSha?: string; token: string; cacheScope: string }, options: GitSkillSnapshotOptions = {}): Promise<GitSkillSnapshot> {
   options.signal?.throwIfAborted();
-  const parsed = parseGitHubSkillRepositoryUrl(input.repositoryUrl);
-  if (!parsed || parsed.trackingRef || (input.commitSha && !/^[a-f0-9]{40}$/i.test(input.commitSha))) throw unprocessable('Invalid GitHub snapshot request.');
+  const parsed = parseGitHubRepositoryUrl(input.repositoryUrl);
+  if (parsed.trackingRef || (input.commitSha && !/^[a-f0-9]{40}$/i.test(input.commitSha))) throw unprocessable('Invalid GitHub snapshot request.');
   const prefix = `${input.cacheScope}:${parsed.repositoryUrl}:`;
   const pinnedKey = input.commitSha ? `${prefix}${input.commitSha.toLowerCase()}` : null;
   const existing = pinnedKey ? snapshots.get(pinnedKey) : undefined;

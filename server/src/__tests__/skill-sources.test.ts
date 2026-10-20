@@ -9,7 +9,7 @@ import { companies, companySkills, companySkillVersions, companySkillRepositoryS
 import { eq, sql } from 'drizzle-orm';
 import { getEmbeddedPostgresTestSupport, startEmbeddedPostgresTestDatabase } from './helpers/embedded-postgres.js';
 import { unprocessable } from '../errors.js';
-import { githubFixture } from './helpers/github-skills.js';
+import { yGithubFixture } from './helpers/y-github-skills.js';
 import { skillSourceService, type SkillSourceContext } from '../services/skill-sources.js';
 import { companySkillService } from '../services/company-skills.js';
 import { skillFileBytes } from '../services/skill-snapshot.js';
@@ -27,7 +27,7 @@ describe.skipIf(!support.supported)('skill source persistence', () => {
   const initial = { 'deep/one/SKILL.md': md('one'), 'deep/one/scripts/run.sh': '#!/bin/sh\necho hello', 'deep/one/assets/image.png': Buffer.from([0,255,137,80]), 'elsewhere/one/SKILL.md': md('one') };
   let files: Record<string, string | Buffer> = initial;
   let commit = sha;
-  const context: SkillSourceContext = { actor: { type: 'user', userId: 'board' }, read: () => githubFixture(files, { 'deep/one/scripts/run.sh': '100755', 'shared/check.sh': '100755' }, commit), authorize: async () => {}, audit: async () => {} };
+  const context: SkillSourceContext = { actor: { type: 'user', userId: 'board' }, read: () => yGithubFixture(files, { 'deep/one/scripts/run.sh': '100755', 'shared/check.sh': '100755' }, commit), authorize: async () => {}, audit: async () => {} };
   beforeAll(async () => {
     testDb = await startEmbeddedPostgresTestDatabase('paperclip-skill-sources-'); db = createDb(testDb.connectionString);
     home = await fs.mkdtemp(path.join(os.tmpdir(), 'paperclip-source-test-')); process.env.PAPERCLIP_HOME = home;
@@ -56,7 +56,7 @@ describe.skipIf(!support.supported)('skill source persistence', () => {
     expect((await skills.getById(companyId, skill.id))?.updatedAt).toEqual(installedBefore.updatedAt);
     expect(await skills.listVersions(companyId, skill.id)).toHaveLength(before.length);
     expect((await skills.getById(companyId, skill.id))?.sourceRef).toBe(sha);
-    const modeChange = await sources.refresh(companyId, result.source.id, { ...context, read: () => githubFixture(files, {}, commit) });
+    const modeChange = await sources.refresh(companyId, result.source.id, { ...context, read: () => yGithubFixture(files, {}, commit) });
     expect(modeChange.updated.map(item => item.id)).toEqual([skill.id]);
     expect((await skills.readFile(companyId, skill.id, 'scripts/run.sh'))?.executable).not.toBe(true);
     files = { ...initial, 'deep/one/references/new.md': 'New guidance', 'new/SKILL.md': md('new') };
@@ -255,7 +255,7 @@ describe.skipIf(!support.supported)('skill source persistence', () => {
   it('routes legacy folder URLs with slash-containing refs through the source importer', async () => {
     const isolatedCompany = randomUUID();
     await db.insert(companies).values({ id: isolatedCompany, name: 'Compatibility', issuePrefix: 'CMP' });
-    const fixture = githubFixture({ 'deep/SKILL.md': md('compatibility'), 'elsewhere/SKILL.md': md('unselected') });
+    const fixture = yGithubFixture({ 'deep/SKILL.md': md('compatibility'), 'elsewhere/SKILL.md': md('unselected') });
     const read = Object.assign(async (request: string) => {
       if (request.includes('/commits/') && decodeURIComponent(request.split('/commits/')[1]!) !== 'feature/new-skills' && !request.endsWith(sha)) throw unprocessable('Not found', { status: 404 });
       return fixture(request);
@@ -285,7 +285,7 @@ describe.skipIf(!support.supported)('skill source persistence', () => {
   it('authorizes previews before any provider read and uses the current caller connection', async () => {
     const service = skillSourceService(db);
     const input = { repositoryUrl: 'https://github.com/acme/skills', connectionId: randomUUID(), commitSha: sha, skillPath: 'SKILL.md', filePath: 'SKILL.md' };
-    const read = vi.fn(() => githubFixture({ 'SKILL.md': md('preview') }));
+    const read = vi.fn(() => yGithubFixture({ 'SKILL.md': md('preview') }));
     await expect(service.preview(input, { ...context, read, authorize: async () => { throw new Error('denied'); } })).rejects.toThrow('denied');
     expect(read).not.toHaveBeenCalled();
     expect((await service.preview(input, { ...context, read })).content).toBe(md('preview'));
@@ -381,7 +381,7 @@ describe.skipIf(!support.supported)('skill source persistence', () => {
     const service = skillSourceService(db), skills = companySkillService(db);
     const result = await service.create(companyId, { repositoryUrl: 'https://github.com/acme/skills', trackingRef: 'warning-import',
       packageMode: 'repository', commitSha: sha, selectedPaths: ['skills/main/SKILL.md', 'broken/SKILL.md'] },
-      { ...context, read: () => githubFixture(files, { 'shared/tools': '120000' }) });
+      { ...context, read: () => yGithubFixture(files, { 'shared/tools': '120000' }) });
     expect(result.imported).toHaveLength(1);
     expect(result.warnings.join(' ')).toMatch(/Symlink/);
     expect(result.warnings.join(' ')).toMatch(/1 MB/);

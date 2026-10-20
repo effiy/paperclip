@@ -1,5 +1,5 @@
 import { skillSourceService, type SkillSourceContext } from "../services/skill-sources.js";
-import { skillSourceGitHubReader } from "../services/skill-source-github-access.js";
+import { skillSourceYGithubReader } from "../services/skill-source-y-github-access.js";
 import { toolAccessService } from "../services/tool-access.js";
 import { skillSourceCreateSchema, skillSourceDiscoverySchema, skillSourcePreviewSchema, skillSourceSelectionSchema } from "@paperclipai/shared";
 import type { ActivityPublication } from "../services/activity-log.js";
@@ -302,7 +302,7 @@ export function companySkillRoutes(db: Db) {
     const publications: ActivityPublication[] = [];
     const result = await operation({
       actor: skillActor(req),
-      read: connectionId => skillSourceGitHubReader(db, companyId, req.actor, connectionId),
+      read: connectionId => skillSourceYGithubReader(db, companyId, req.actor, connectionId),
       authorize: (action, resource) => assertCanMutateCompanySkills(req, companyId, action, resource),
       audit: async (tx, sourceId, action, details) => {
         const { publication } = await persistActivity(tx as unknown as Db, { ...actor, companyId, action, entityType: "company_skill_source", entityId: sourceId, details });
@@ -1101,7 +1101,7 @@ export function companySkillRoutes(db: Db) {
     if (managed) {
       const skill = await svc.getById(companyId, skillId);
       if (!managed.enabled || managed.entries.find(entry => entry.skillId === skillId)?.selection !== "selected") { res.json({ supported: false, reason: "Source is disconnected. Reconnect it in Skills → Sources.", trackingRef: managed.trackingRef, currentRef: skill?.sourceRef, latestRef: null, hasUpdate: false }); return; }
-      const read = skillSourceGitHubReader(db, companyId, req.actor, managed.connectionId);
+      const read = skillSourceYGithubReader(db, companyId, req.actor, managed.connectionId);
       const latest = await read(`/repos/${managed.fullName}/commits/${encodeURIComponent(managed.trackingRef)}`) as { sha: string };
       res.json({ supported: true, reason: null, trackingRef: managed.trackingRef, currentRef: skill?.sourceRef, latestRef: latest.sha, hasUpdate: latest.sha !== managed.lastScanCommit });
       return;

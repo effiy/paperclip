@@ -2,7 +2,7 @@ import { GithubIcon } from "@/components/icons/github-icon";
 import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { RefreshCw, Plus, ExternalLink, Check, Lock, GitBranch, FileText, MoreVertical } from 'lucide-react';
-import { parseGitHubSkillRepositoryUrl, type SkillSource, type SkillSourceDiscovery, type SkillSourceRefreshResult, type SkillSourceScanProgress } from '@paperclipai/shared';
+import { parseGitHubRepositoryUrl, type SkillSource, type SkillSourceDiscovery, type SkillSourceRefreshResult, type SkillSourceScanProgress } from '@paperclipai/shared';
 import { Link, useNavigate, useParams } from '@/lib/router';
 import { useCompany } from '@/context/CompanyContext';
 import { useBreadcrumbs } from '@/context/BreadcrumbContext';
@@ -115,8 +115,11 @@ function SourceDialog({ companyId, source, onClose, onSaved }: {
   const [excludedFolders, setExcludedFolders] = useState<string[]>(draft.excludedFolders ?? source?.excludedFolders ?? []);
   const repositories = useQuery({ queryKey: queryKeys.skillSources.repositories(companyId), queryFn: () => skillSourcesApi.repositories(companyId), refetchOnMount: 'always', retry: false });
   const availableRepositories = repositories.data?.repositories ?? [];
-  const parsedRepository = parseGitHubSkillRepositoryUrl(repositoryUrl);
-  const matchingRepository = availableRepositories.find(repo => parseGitHubSkillRepositoryUrl(repo.url)?.repositoryUrl === parsedRepository?.repositoryUrl);
+  let parsedRepository: ReturnType<typeof parseGitHubRepositoryUrl> | null = null;
+  try { parsedRepository = parseGitHubRepositoryUrl(repositoryUrl); } catch { /* invalid URL during typing */ }
+  const matchingRepository = availableRepositories.find(repo => {
+    try { return parseGitHubRepositoryUrl(repo.url).repositoryUrl === parsedRepository?.repositoryUrl; } catch { return false; }
+  });
   // Only choose from the current caller's authorized repository inventory. The
   // server reauthorizes the chosen connection on every GitHub request.
   const matchingConnectionIds = matchingRepository?.connectionIds ?? [];

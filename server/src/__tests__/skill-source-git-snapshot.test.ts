@@ -25,7 +25,7 @@ vi.mock('node:child_process', async importOriginal => {
   } };
 });
 import { clearGitSkillSnapshotCache, openGitSkillSnapshot, parseGitDownloadProgress } from '../services/skill-source-git-snapshot.js';
-import { scanGitHubSkills, type GitHubRead } from '../services/github-skill-source.js';
+import { scanYGithubSkills, type YGithubRead } from '../services/y-github-skill-source.js';
 const exec = promisify(execFile);
 let directory: string, commit: string, laterCommit: string;
 const git = (...args: string[]) => exec('git', ['-C', directory, '-c', 'user.name=Test', '-c', 'user.email=test@example.test', ...args]);
@@ -65,12 +65,12 @@ describe('Git skill snapshots', () => {
       await exec('git', ['-C', remote, 'add', '.']);
       await exec('git', ['-C', remote, '-c', 'user.name=Test', '-c', 'user.email=test@example.test', 'commit', '-m', 'Many support files']);
       const commitSha = (await exec('git', ['-C', remote, 'rev-parse', 'HEAD'])).stdout.trim();
-      const read = (async (url: string) => url.includes('/commits/') ? { sha: commitSha } : { id: 42, full_name: 'acme/skills', default_branch: 'main' }) as GitHubRead;
+      const read = (async (url: string) => url.includes('/commits/') ? { sha: commitSha } : { id: 42, full_name: 'acme/skills', default_branch: 'main' }) as YGithubRead;
       read.openSnapshot = (input, options) => openGitSkillSnapshot({ ...request(), ref: input.ref, commitSha: input.commitSha }, options);
-      const first = await scanGitHubSkills({ repositoryUrl: 'https://github.com/acme/skills', packageMode: 'repository' }, read);
+      const first = await scanYGithubSkills({ repositoryUrl: 'https://github.com/acme/skills', packageMode: 'repository' }, read);
       expect(first.repositoryPackage?.error).toBeNull();
       expect(first.repositoryFiles).toHaveLength(1026);
-      const second = await scanGitHubSkills({ repositoryUrl: 'https://github.com/acme/skills', packageMode: 'repository', commitSha: first.commitSha }, read);
+      const second = await scanYGithubSkills({ repositoryUrl: 'https://github.com/acme/skills', packageMode: 'repository', commitSha: first.commitSha }, read);
       expect(second.repositoryFiles).toEqual(first.repositoryFiles);
       expect(interception.commands.filter(command => command.args.includes('fetch'))).toHaveLength(1);
       const reads = interception.commands.filter(command => command.args.includes('cat-file'));

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { userEvent, within } from 'storybook/test';
-import { GitHubSkillsJourney } from '../github-skills-journey.stories';
+import { GitHubSkillsJourney } from '../y-github-skills-journey.stories';
 
 const meta = {
   id: "skills-repository-packages",

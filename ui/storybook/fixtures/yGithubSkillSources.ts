@@ -1,4 +1,4 @@
-import { parseGitHubSkillRepositoryUrl } from "@paperclipai/shared";
+import { parseGitHubRepositoryUrl } from "@paperclipai/shared";
 import type { AgentDesiredSkillEntry, CompanySkillDetail, CompanySkillListItem, CompanySkillVersion, CompanySkill, SkillSource, SkillPackageInspection, SkillSourceCandidate, SkillSourceEntry, SkillSourceRefreshResult, SkillRepositoryPackage } from "@paperclipai/shared";
 import { companySkillsApi } from "@/api/companySkills";
 import { agentsApi } from "@/api/agents";
@@ -206,8 +206,7 @@ export function installFixtures(empty: boolean, needsConnection: boolean, option
     };
   };
   skillSourcesApi.discover = async (_companyId, input) => {
-    const parsed = parseGitHubSkillRepositoryUrl(input.repositoryUrl);
-    if (!parsed) throw new Error('Enter an HTTPS GitHub repository or branch URL.');
+    const parsed = parseGitHubRepositoryUrl(input.repositoryUrl);
     return {
       repositoryId: '123456', repositoryUrl: parsed.repositoryUrl, fullName: parsed.fullName,
       trackingRef: input.trackingRef || parsed.trackingRef || 'main', commitSha: COMMIT, candidates: input.packageMode === 'repository' && options.packageScenario ? repositoryCandidates(options.packageScenario) : discoveryCandidates, warnings: [],

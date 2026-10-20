@@ -11,7 +11,7 @@ import { SkillStudio } from "@/pages/SkillStudio";
 import { PluginLauncherProvider } from "@/plugins/launchers";
 import { Link, Route, Routes, useNavigate } from "@/lib/router";
 import { queryKeys } from "@/lib/queryKeys";
-import { COMPANY_ID, COMMIT, installFixtures, repositoryCandidates, repositoryFixture, SOURCE_ID } from "../../fixtures/githubSkillSources";
+import { COMPANY_ID, COMMIT, installFixtures, repositoryCandidates, repositoryFixture, SOURCE_ID } from "../../fixtures/yGithubSkillSources";
 
 type Step = "start" | "repository" | "selection" | "imported" | "library" | "detail" | "agents" | "assigned" | "refresh" | "new-skills" | "scanning" | "saving";
 const routes: Record<Step, string> = {

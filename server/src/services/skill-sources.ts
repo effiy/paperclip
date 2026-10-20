@@ -6,14 +6,14 @@ import type { CompanySkill, SkillSource, SkillSourceCreateRequest, SkillSourceDi
 import { normalizeAgentUrlKey } from '@paperclipai/shared';
 import { conflict, notFound, unprocessable } from '../errors.js';
 import { companySkillService, parseSkillImportSourceInput } from './company-skills.js';
-import { scanGitHubSkills, previewGitHubSkillFile, type GitHubRead, type ScannedSkillSource, type SkillScanOptions } from './github-skill-source.js';
+import { scanYGithubSkills, previewYGithubSkillFile, type YGithubRead, type ScannedSkillSource, type SkillScanOptions } from './y-github-skill-source.js';
 import { skillSnapshotHash } from './skill-snapshot.js';
 
 type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
 type SourceRow = typeof sources.$inferSelect;
 export type SkillSourceContext = {
   actor: { type: 'user' | 'agent' | 'system'; userId?: string | null; agentId?: string | null };
-  read: (connectionId: string | null) => GitHubRead;
+  read: (connectionId: string | null) => YGithubRead;
   authorize: (action: 'skills.import' | 'skills.update' | 'skills.edit', resource: { skillId?: string; skillKey?: string; sourceType: 'git'; sourceLocator: string }) => Promise<void>;
   audit: (tx: Tx, sourceId: string, action: string, details: Record<string, unknown>) => Promise<void>;
 };
@@ -41,12 +41,12 @@ export function skillSourceService(db: Db) {
   }
   async function discover(input: SkillSourceDiscoveryRequest, context: SkillSourceContext, options?: SkillScanOptions) {
     await context.authorize('skills.import', { sourceType: 'git', sourceLocator: input.repositoryUrl });
-    const { skills: _files, repositoryFiles: _repositoryFiles, defaultBranch: _defaultBranch, ...result } = await scanGitHubSkills(input, context.read(input.connectionId ?? null), { ...options, retainFiles: false });
+    const { skills: _files, repositoryFiles: _repositoryFiles, defaultBranch: _defaultBranch, ...result } = await scanYGithubSkills(input, context.read(input.connectionId ?? null), { ...options, retainFiles: false });
     return result;
   }
   async function preview(input: SkillSourcePreviewRequest, context: SkillSourceContext) {
     await context.authorize('skills.import', { sourceType: 'git', sourceLocator: input.repositoryUrl });
-    return previewGitHubSkillFile(input, context.read(input.connectionId ?? null));
+    return previewYGithubSkillFile(input, context.read(input.connectionId ?? null));
   }
   async function authorizeScan(source: SourceRow, scan: ScannedSkillSource, selectedPaths: string[], context: SkillSourceContext) {
     const previous = await db.select().from(entries).where(and(eq(entries.companyId, source.companyId), eq(entries.sourceId, source.id)));
@@ -67,7 +67,7 @@ export function skillSourceService(db: Db) {
   }
   function newSkillKey(scan: ScannedSkillSource, skillPath: string, name: string, sourceId: string) {
     const identity = createHash('sha256').update(`${scan.repositoryId}:${sourceId}:${skillPath}`).digest('hex').slice(0, 16);
-    return `github/${scan.repositoryId}/${identity}/${normalizeAgentUrlKey(name) || 'skill'}`;
+    return `y-github/${scan.repositoryId}/${identity}/${normalizeAgentUrlKey(name) || 'skill'}`;
   }
   async function publish(tx: Tx, source: SourceRow, scan: ScannedSkillSource, selectedPaths: string[], excludedFolders: string[], context: SkillSourceContext, selectionReviewed: boolean): Promise<Omit<SkillSourceRefreshResult, 'source'>> {
     const mode = scan.packageMode ?? 'skills';
@@ -167,7 +167,7 @@ export function skillSourceService(db: Db) {
   }
   async function create(companyId: string, input: SkillSourceCreateRequest, context: SkillSourceContext, staged?: ScannedSkillSource) {
     await context.authorize('skills.import', { sourceType: 'git', sourceLocator: input.repositoryUrl });
-    const scan = staged ?? await scanGitHubSkills(input, context.read(input.connectionId ?? null));
+    const scan = staged ?? await scanYGithubSkills(input, context.read(input.connectionId ?? null));
     if (scan.trackingRef === scan.defaultBranch && (await list(companyId)).some(source => source.repositoryUrl.toLowerCase() === scan.repositoryUrl.toLowerCase() && source.trackingRef === 'HEAD')) {
       throw conflict('This repository is already in Sources. Manage its skills there.');
     }
@@ -198,7 +198,7 @@ export function skillSourceService(db: Db) {
     source = leased;
     try {
       const connectionId = selection?.connectionId !== undefined ? selection.connectionId : source.connectionId;
-      const scan = staged ?? await scanGitHubSkills({ repositoryUrl: source.repositoryUrl, trackingRef: source.trackingRef, packageMode: selection?.packageMode ?? source.packageMode }, context.read(connectionId));
+      const scan = staged ?? await scanYGithubSkills({ repositoryUrl: source.repositoryUrl, trackingRef: source.trackingRef, packageMode: selection?.packageMode ?? source.packageMode }, context.read(connectionId));
       if (source.repositoryId && source.repositoryId !== scan.repositoryId) throw conflict('The repository at this URL has changed identity. Add it as a new source.');
       const current = await detail(companyId, id);
       const selectedPaths = selection?.selectedPaths ?? current.entries.filter(entry => entry.selection === 'selected').map(entry => entry.path);
@@ -261,10 +261,10 @@ export function skillSourceService(db: Db) {
       if (!trackingRef) throw unprocessable('GitHub branch or commit was not found.');
     }
     await context.authorize('skills.import', { sourceType: 'git', sourceLocator: repositoryUrl });
-    let scan = await scanGitHubSkills({ repositoryUrl, trackingRef, commitSha }, read);
+    let scan = await scanYGithubSkills({ repositoryUrl, trackingRef, commitSha }, read);
     const existing = previous.find(source => source.trackingRef === scan.trackingRef || (source.trackingRef === 'HEAD' && scan.trackingRef === scan.defaultBranch));
     if (existing?.packageMode === 'repository') {
-      scan = await scanGitHubSkills({ repositoryUrl, trackingRef: scan.trackingRef, commitSha: scan.commitSha, packageMode: 'repository' }, read);
+      scan = await scanYGithubSkills({ repositoryUrl, trackingRef: scan.trackingRef, commitSha: scan.commitSha, packageMode: 'repository' }, read);
     }
     const selectedPaths = scan.candidates.filter(candidate =>
       (!prefix || candidate.path === prefix || candidate.path.startsWith(`${prefix}/`)) &&

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { SkillImportProgress } from '@/pages/skills/SkillImportProgress';
-import { candidates } from '../../fixtures/githubSkillSources';
+import { candidates } from '../../fixtures/yGithubSkillSources';
 
 const meta = {
   id: "skills-import-progress",

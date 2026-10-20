@@ -2606,7 +2606,7 @@
       "sidebarTitle": "Apps, channels, and extensions/External chat and email/Connections/GitHub and Code Review Bot"
     },
     {
-      "file": "ui/storybook/stories/skills/github-skills-journey.stories.tsx",
+      "file": "ui/storybook/stories/skills/y-github-skills-journey.stories.tsx",
       "capabilities": [
         "skills/versions",
         "skills/discovery"
@@ -2625,14 +2625,14 @@
         "ui/src/pages/SkillStudio.tsx",
         "ui/storybook/fixtures/githubSkillSources.ts",
         "ui/storybook/fixtures/paperclipData.ts",
-        "ui/storybook/stories/skills/github-skills-journey.stories.tsx"
+        "ui/storybook/stories/skills/y-github-skills-journey.stories.tsx"
       ],
       "fingerprint": "dcb8e4ce80ddc71f25542b9d84cdf1ce20e552da2848404e62d61f0687e3fc3f",
       "stableId": "skills-github-sync-journey",
       "sidebarTitle": "Agents and reusable capabilities/Skills and Skill Studio/Skills/GitHub sync journey"
     },
     {
-      "file": "ui/storybook/stories/skills/github-synced-skills.stories.tsx",
+      "file": "ui/storybook/stories/skills/y-github-synced-skills.stories.tsx",
       "capabilities": [
         "skills/versions",
         "skills/discovery"
@@ -2648,7 +2648,7 @@
         "ui/src/pages/SkillSources.tsx",
         "ui/storybook/fixtures/githubSkillSources.ts",
         "ui/storybook/fixtures/paperclipData.ts",
-        "ui/storybook/stories/skills/github-synced-skills.stories.tsx"
+        "ui/storybook/stories/skills/y-github-synced-skills.stories.tsx"
       ],
       "fingerprint": "f87c8ee2574a097ef4e4828589618ad196f170fb652db022bc7488b3fb7971e2",
       "stableId": "skills-github-synced-skills",
@@ -4408,7 +4408,7 @@
         "ui/src/pages/SkillStudio.tsx",
         "ui/storybook/fixtures/githubSkillSources.ts",
         "ui/storybook/fixtures/paperclipData.ts",
-        "ui/storybook/stories/skills/github-skills-journey.stories.tsx",
+        "ui/storybook/stories/skills/y-github-skills-journey.stories.tsx",
         "ui/storybook/stories/skills/repository-skill-packages/repository-skill-packages.stories.tsx"
       ],
       "fingerprint": "a90fb6c9377034d3645b851711ddc84eb3b9945dce0cdea4496cb9a4050fb8ad",

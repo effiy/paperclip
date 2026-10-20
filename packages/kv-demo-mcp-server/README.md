@@ -1,57 +1,46 @@
+---
+title: "KV Demo MCP Server"
+tags: ["mcp", "demo", "key-value", "paperclip", "server"]
+category: "mcp-server"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # KV Demo MCP Server
 
-A standalone, self-contained MCP server for demos. One process exposes four
-key/value MCP tools **and** a tiny web UI that renders the values those tools
-mutate — so you can call a tool from a Paperclip agent and watch the value
-appear in a browser tab.
+## 💡 概述
 
-The shared in-memory store is the whole point: the same `Map<string, string>`
-backs every tool call and every UI render. There is no database, no file, no
-persistence. Restart the process and the store is empty again. That makes this
-the right fixture for showing what Paperclip stores versus what the demo
-package stores — the package stores the values, Paperclip stores the
-connection, the profile/policy decisions, and the audit log.
+A standalone, self-contained MCP server for demos. One process exposes four key/value MCP tools **and** a tiny web UI that renders the values those tools mutate -- so you can call a tool from a Paperclip agent and watch the value appear in a browser tab.
 
-This package pairs with the operator guide in
-[doc/MCP-ACCESS-GOVERNANCE.md](../../doc/MCP-ACCESS-GOVERNANCE.md) and the
-recorded walkthrough in [doc/MCP-DEMO-SCRIPT.md](../../doc/MCP-DEMO-SCRIPT.md).
+The shared in-memory store is the whole point: the same `Map<string, string>` backs every tool call and every UI render. There is no database, no file, no persistence. Restart the process and the store is empty again. That makes this the right fixture for showing what Paperclip stores versus what the demo package stores -- the package stores the values, Paperclip stores the connection, the profile/policy decisions, and the audit log.
 
-## What you get
+This package pairs with the operator guide in [doc/MCP-ACCESS-GOVERNANCE.md](../../doc/MCP-ACCESS-GOVERNANCE.md) and the recorded walkthrough in [doc/MCP-DEMO-SCRIPT.md](../../doc/MCP-DEMO-SCRIPT.md).
+
+---
+
+## ⚡ 功能
 
 - Four MCP tools (over the Streamable HTTP transport):
-  - `kv_list` (read) — list every key/value, optionally filtered by `prefix`.
-  - `kv_get` (read) — read one key.
-  - `kv_set` (write) — set one key to a string value.
-  - `kv_delete` (destructive) — delete a key. Carries `destructiveHint: true`
-    so Paperclip's catalog quarantines it on first sight.
-- A Values UI at `/` — an auto-refreshing HTML table over the same store.
-- A JSON state route at `/api/state` — what the UI polls.
+  - `kv_list` (read) -- list every key/value, optionally filtered by `prefix`.
+  - `kv_get` (read) -- read one key.
+  - `kv_set` (write) -- set one key to a string value.
+  - `kv_delete` (destructive) -- delete a key. Carries `destructiveHint: true` so Paperclip's catalog quarantines it on first sight.
+- A Values UI at `/` -- an auto-refreshing HTML table over the same store.
+- A JSON state route at `/api/state` -- what the UI polls.
 
-## Local startup
+---
 
-From the repo root:
+## 📊 指标
 
-```sh
-pnpm --filter @paperclipai/kv-demo-mcp-server build
-pnpm --filter @paperclipai/kv-demo-mcp-server start
-```
+「待补充」
 
-Or run the source directly during development:
+---
 
-```sh
-cd packages/kv-demo-mcp-server
-node --experimental-strip-types src/main.ts   # Node 24+
-```
-
-By default it listens on `http://127.0.0.1:8848` and prints three URLs to
-stderr on startup:
-
-- **MCP endpoint** — `POST http://127.0.0.1:8848/mcp` (Streamable HTTP)
-- **Values UI** — `GET http://127.0.0.1:8848/` (auto-refreshes every 2s)
-- **JSON state** — `GET http://127.0.0.1:8848/api/state`
-
-Open the Values UI in a browser tab and keep it visible. Every successful
-`kv_set` / `kv_delete` lands in that table within ~2 seconds.
+## 🏛️ 设计
 
 ### Configuration
 
@@ -63,31 +52,19 @@ All configuration is via environment variables:
 | `KV_DEMO_HOST` | `127.0.0.1` | Bind host. Use `0.0.0.0` to accept connections from another machine on the LAN. |
 | `KV_DEMO_TOKEN` | unset | Optional shared secret. When set, data and MCP routes require it. |
 
-When `KV_DEMO_TOKEN` is set, present it as `Authorization: Bearer <token>`.
-For the browser UI, open `http://127.0.0.1:8848/#token=<token>`; the fragment is
-not sent to the server and the page removes it from the address bar before
-polling `/api/state` with the bearer header. The token is a convenience guard
-for local demos, not a hardened auth scheme; do not expose this server to
-untrusted networks.
+When `KV_DEMO_TOKEN` is set, present it as `Authorization: Bearer <token>`. For the browser UI, open `http://127.0.0.1:8848/#token=<token>`; the fragment is not sent to the server and the page removes it from the address bar before polling `/api/state` with the bearer header. The token is a convenience guard for local demos, not a hardened auth scheme; do not expose this server to untrusted networks.
 
-## Connecting from Paperclip
+### Connecting from Paperclip
 
-The KV demo is meant for the `remote_http` connection path. The server speaks
-Streamable HTTP at `/mcp`, runs in a single process so the Values UI and the
-MCP tools share state, and listens on a fixed loopback port. Paperclip's
-remote-HTTP gateway proxies every call through policy and audit while leaving
-process supervision to you (just `Ctrl+C` the server when you are done).
+The KV demo is meant for the `remote_http` connection path. The server speaks Streamable HTTP at `/mcp`, runs in a single process so the Values UI and the MCP tools share state, and listens on a fixed loopback port. Paperclip's remote-HTTP gateway proxies every call through policy and audit while leaving process supervision to you (just `Ctrl+C` the server when you are done).
 
-### Via the Connect-an-app wizard (recommended)
+#### Via the Connect-an-app wizard (recommended)
 
 1. Open the company's Tools UI at `/<prefix>/companies/<companyId>/tools`.
 2. Go to **Connect an app** and pick **Connect with a link**.
 3. Paste `http://127.0.0.1:8848/mcp` and give it a name (e.g. "KV demo").
-4. If you launched the server with `KV_DEMO_TOKEN`, paste the token in the
-   **App key** field. The wizard stores it as an `Authorization: Bearer …`
-   header secret.
-5. Pick the profile defaults (read/write/destructive) and finish. Paperclip
-   imports the four tools and quarantines `kv_delete`.
+4. If you launched the server with `KV_DEMO_TOKEN`, paste the token in the **App key** field. The wizard stores it as an `Authorization: Bearer ...` header secret.
+5. Pick the profile defaults (read/write/destructive) and finish. Paperclip imports the four tools and quarantines `kv_delete`.
 
 The wizard hits this API under the hood:
 
@@ -114,49 +91,24 @@ If a token is set, add the `credentialValues` block:
 }
 ```
 
-### Transport tradeoffs
+#### Transport tradeoffs
 
-- **`remote_http` (recommended for this demo)** — required if you want the
-  Values UI to reflect what the agent just did. The KV demo intentionally
-  holds state in one process and exposes both the MCP endpoint and the UI
-  from that process. Paperclip's `remote_http` gateway forwards every call to
-  the same loopback URL, so the UI always sees the same store the tools
-  mutated.
-- **`local_stdio` (not used here)** — runs MCP servers as supervised child
-  processes inside Paperclip's runtime slots. Reserved for *trusted local
-  deployments* (developer laptop, `local_trusted` or
-  `authenticated/private` with `PAPERCLIP_TRUSTED_MCP_RUNTIME_HOST` set on a
-  single trusted worker). Each runtime slot has its own process, which would
-  give each slot its own in-memory store — you would lose the shared-state
-  property that makes this demo work. Use the approved stdio templates that
-  ship in the Paperclip build when you need stdio; do not try to shoehorn
-  this server into a local-stdio template.
+- **`remote_http` (recommended for this demo)** -- required if you want the Values UI to reflect what the agent just did. The KV demo intentionally holds state in one process and exposes both the MCP endpoint and the UI from that process. Paperclip's `remote_http` gateway forwards every call to the same loopback URL, so the UI always sees the same store the tools mutated.
+- **`local_stdio` (not used here)** -- runs MCP servers as supervised child processes inside Paperclip's runtime slots. Reserved for *trusted local deployments* (developer laptop, `local_trusted` or `authenticated/private` with `PAPERCLIP_TRUSTED_MCP_RUNTIME_HOST` set on a single trusted worker). Each runtime slot has its own process, which would give each slot its own in-memory store -- you would lose the shared-state property that makes this demo work. Use the approved stdio templates that ship in the Paperclip build when you need stdio; do not try to shoehorn this server into a local-stdio template.
 
-For the full transport policy across deployment modes, see
-[MCP-ACCESS-GOVERNANCE.md → Local trusted deployment](../../doc/MCP-ACCESS-GOVERNANCE.md#local-trusted-deployment).
+For the full transport policy across deployment modes, see [MCP-ACCESS-GOVERNANCE.md -> Local trusted deployment](../../doc/MCP-ACCESS-GOVERNANCE.md#local-trusted-deployment).
 
-## What you should see in Paperclip
+### What you should see in Paperclip
 
 After the wizard finishes, expect:
 
-- **Catalog** — four tools imported from this connection. `kv_list` and
-  `kv_get` are tagged `read`; `kv_set` is tagged `write`; `kv_delete` is
-  tagged `destructive` and starts in `quarantined` status.
-- **Tools panel** on an agent — `kv_list`, `kv_get`, and (with the default
-  ask-first policy) `kv_set`. `kv_delete` is not listed until you take it
-  out of quarantine.
-- **Audit feed** — one row per call. Reads show
-  `tool_gateway.call_completed` with `decision: allow`. Writes that hit the
-  default ask-first policy show `tool_gateway.approval_requested` followed
-  by `tool_gateway.call_allowed` and `tool_gateway.call_completed` once you
-  approve. Calls to `kv_delete` show `tool_gateway.call_denied` with
-  `reasonCode: quarantined_catalog_entry`.
+- **Catalog** -- four tools imported from this connection. `kv_list` and `kv_get` are tagged `read`; `kv_set` is tagged `write`; `kv_delete` is tagged `destructive` and starts in `quarantined` status.
+- **Tools panel** on an agent -- `kv_list`, `kv_get`, and (with the default ask-first policy) `kv_set`. `kv_delete` is not listed until you take it out of quarantine.
+- **Audit feed** -- one row per call. Reads show `tool_gateway.call_completed` with `decision: allow`. Writes that hit the default ask-first policy show `tool_gateway.approval_requested` followed by `tool_gateway.call_allowed` and `tool_gateway.call_completed` once you approve. Calls to `kv_delete` show `tool_gateway.call_denied` with `reasonCode: quarantined_catalog_entry`.
 
-The recorded walkthrough in [doc/MCP-DEMO-SCRIPT.md](../../doc/MCP-DEMO-SCRIPT.md)
-runs all three cases end-to-end against this package and matches the audit
-rows above.
+The recorded walkthrough in [doc/MCP-DEMO-SCRIPT.md](../../doc/MCP-DEMO-SCRIPT.md) runs all three cases end-to-end against this package and matches the audit rows above.
 
-## What lives where
+### What lives where
 
 | Concern | Stored in this package | Stored in Paperclip |
 | --- | --- | --- |
@@ -166,24 +118,55 @@ rows above.
 | Approval action requests | Not stored. | Persisted under `tool_action_requests`, linked to issue-thread interactions. |
 | Audit rows for each call | Not stored. | Persisted under `tool_call_events`. Append-only. |
 
-## Cleanup and reset
+---
 
-Resetting the demo state usually means resetting this process; Paperclip's
-records stay intact unless you also archive the connection.
+## 📁 目录
 
-- **Empty the KV store** — `Ctrl+C` (or `kill`) the server and start it
-  again. The new process starts with zero keys and revision `0`. There is no
-  in-process reset endpoint by design; restart is the single supported
-  reset.
-- **Free the port** — if startup logs `EADDRINUSE`, another `kv-demo`
-  process is still bound to `8848`. Find and kill it:
+「待补充」
+
+---
+
+## 🔗 资源
+
+- [MCP-ACCESS-GOVERNANCE.md](../../doc/MCP-ACCESS-GOVERNANCE.md)
+- [MCP-DEMO-SCRIPT.md](../../doc/MCP-DEMO-SCRIPT.md)
+
+---
+
+## 🚀 快速开始
+
+From the repo root:
+
+```sh
+pnpm --filter @paperclipai/kv-demo-mcp-server build
+pnpm --filter @paperclipai/kv-demo-mcp-server start
+```
+
+Or run the source directly during development:
+
+```sh
+cd packages/kv-demo-mcp-server
+node --experimental-strip-types src/main.ts   # Node 24+
+```
+
+By default it listens on `http://127.0.0.1:8848` and prints three URLs to stderr on startup:
+
+- **MCP endpoint** -- `POST http://127.0.0.1:8848/mcp` (Streamable HTTP)
+- **Values UI** -- `GET http://127.0.0.1:8848/` (auto-refreshes every 2s)
+- **JSON state** -- `GET http://127.0.0.1:8848/api/state`
+
+### Cleanup and reset
+
+Resetting the demo state usually means resetting this process; Paperclip's records stay intact unless you also archive the connection.
+
+- **Empty the KV store** -- `Ctrl+C` (or `kill`) the server and start it again. The new process starts with zero keys and revision `0`. There is no in-process reset endpoint by design; restart is the single supported reset.
+- **Free the port** -- if startup logs `EADDRINUSE`, another `kv-demo` process is still bound to `8848`. Find and kill it:
 
   ```sh
   lsof -nP -iTCP:8848 -sTCP:LISTEN
   kill <pid>
   ```
-- **Quiesce the Paperclip side** — disable the connection so the gateway
-  stops trying to reach the now-stopped server:
+- **Quiesce the Paperclip side** -- disable the connection so the gateway stops trying to reach the now-stopped server:
 
   ```sh
   curl -fsS -X PATCH \
@@ -192,8 +175,7 @@ records stay intact unless you also archive the connection.
     "$PAPERCLIP_URL/api/tool-connections/$CONNECTION_ID" \
     -d '{ "enabled": false, "status": "disabled" }'
   ```
-- **Archive the application** when you are fully done. Audit history is
-  retained, but no new calls can land:
+- **Archive the application** when you are fully done. Audit history is retained, but no new calls can land:
 
   ```sh
   curl -fsS -X PATCH \
@@ -203,5 +185,13 @@ records stay intact unless you also archive the connection.
     -d '{ "status": "archived" }'
   ```
 
-The KV demo is a fixture, not a piece of infrastructure. Treat each session
-as disposable: start it, run the demo, kill it.
+The KV demo is a fixture, not a piece of infrastructure. Treat each session as disposable: start it, run the demo, kill it.
+
+---
+
+## ⚙️ 技术栈
+
+- Runtime: Node.js
+- Protocol: MCP (Model Context Protocol) Streamable HTTP
+- Storage: In-memory Map (no persistence)
+- UI: Auto-refreshing HTML table

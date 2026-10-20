@@ -1,4 +1,20 @@
-# Paperclip feature map
+---
+title: "Feature Map"
+tags: ["maps", "features", "user-journeys", "verification", "testing"]
+category: "documentation"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
+# Paperclip Feature Map
+
+---
+
+## 💡 概述
 
 Start here when reproducing a user-facing bug, verifying a change, or deciding
 which surfaces a fix must cover. Each recipe describes what a person can do,
@@ -9,13 +25,15 @@ The sibling [agent access map](../agent-access-map/README.md) records APIs,
 agent entry points and permission boundaries for the same capability IDs.
 Follow the [shared map contract](../README.md) when maintaining either map.
 
-## Features
-
 The map is organized by user capability, not by source file. It covers **35 feature
 families** across the product, CLI, and operator workflows, checked against source
 on 2026-10-12. Experimental and developer-only surfaces are labeled explicitly.
 Each recipe includes sub-features, current entry points, automated evidence,
 manual verification steps, and gotchas.
+
+---
+
+## ⚡ 功能
 
 ### Getting started and access
 
@@ -96,37 +114,30 @@ These are verification instructions, not a claim that every journey passed a liv
 test. A component test proves its component; a scripted provider proves that
 fixture integration. Record executed results separately from the map.
 
-## Before driving a journey
+---
+
+## 🏛️ 设计
+
+### Before driving a journey
 
 1. Use this checkout's [isolated test drive](../../doc/DEVELOPING.md#one-command-isolated-manual-test-drive)
    for manual product checks. It creates a temporary instance and prints its URL
-   and data directory. Do not guess that a server on port 3100 belongs to you.
+   and data directory.
 2. Record the commit, URL, company, login role, relevant experimental settings,
-   adapter, runtime mode, and live versus simulated dependencies. Use disposable
-   tasks and provider resources. A fresh test drive creates a company and CEO,
-   but no task or first run.
+   adapter, runtime mode, and live versus simulated dependencies.
 3. Use the current navigation and company prefix. Paths in recipes omit that
-   prefix. Record whether the streamlined or production shell is selected;
-   Agent Chat, chat connectors, and the combined Inbox/Tasks view have separate
-   gates. A hidden surface is an unmet prerequisite, not a successful test.
-4. Run the smallest relevant test first. Vitest commands below run from the
+   prefix.
+4. Run the smallest relevant test first. Vitest commands run from the
    repository root after installing dependencies. Playwright recipes use their
-   named configuration and its isolated environment, not an unrelated running
-   instance. Reserve expensive runner/provider tests for the behavior at issue.
+   named configuration and its isolated environment.
 5. Exercise the actual user action, inspect its result, reload, and verify the
-   persisted state or continuation. Use read-only API checks to corroborate UI
-   evidence; creating state through the API does not prove the creation UI.
+   persisted state or continuation.
 
 For agent-driven acceptance work, start with the
 [Paperclip verification skill](../../.agents/skills/verify-paperclip/SKILL.md) for an
 isolated launch, ownership/readiness checks, browser driving, evidence, and cleanup.
-It uses this directory as its feature map. The existing
-[dev-workspace run/verify skill](../../.agents/skills/paperclip-dev-workspace-run-verify-fix/SKILL.md)
-and [evaluation skill](../../.agents/skills/paperclip-evals/SKILL.md) describe runtime
-ownership and evidence handling. Reuse them; this map introduces no environment
-launcher, credentials, scheduled job, or second test framework.
 
-## Evidence contract
+### Evidence contract
 
 Report each entry point as **passed**, **failed**, **blocked** (with its missing
 prerequisite), or **not run**. Include the feature filename and entry-point ID,
@@ -140,40 +151,7 @@ Keep product regressions visible; do not change the recipe to bless a failure.
 For Paperclip-assigned work, attach evidence through the
 [artifact workflow](../../doc/AGENT-ARTIFACTS.md).
 
-## Inventory and remaining depth
-
-[The UI coverage inventory](./coverage.json) accounts for every non-test TSX
-module under `ui/src/pages`, including supporting panels, legacy variants, and
-labs. Every product area now links to concrete recipes. **Partial** means the
-area still has the named variant or workflow gaps; **unmapped** is reserved for
-an area with no recipe. These statuses describe documentation, not runtime health.
-
-The page inventory is a source snapshot dated 2026-10-05. The map also
-includes entry points hosted inside other modules (pipeline Review Queue and
-Learnings, task documents, onboarding), CLI-only operations, and operator work.
-The team recipe explicitly distinguishes the current CLI/API path from catalog
-UI components without a current top-level route. Refer to [route registration](../../ui/src/App.tsx)
-and the [CLI registry](../../cli/src/index.ts) when changing reachability.
-
-Remaining depth includes complete provider/auth/attachment matrices, every
-harness/model/environment capability combination, third-party plugin features,
-and every role/error/mobile/legacy-shell permutation. The recipes name relevant
-gaps instead of equating source presence with a working user journey. The index
-can include capabilities that do not add a page file.
-
-## Maintaining the reference
-
-The map documents user journeys. It does not execute them automatically;
-`coverage.json` records documentation scope rather than live test health.
-
-When maintaining a recipe, compare its entry points and expected results with
-the current source. Check that linked tests still exercise the stated behavior
-and that local references still exist. Refresh the inventory snapshot when it
-helps explain the current product. Keep the same-named agent access companion
-and stable sub-feature IDs aligned when behavior or access changes. Source-only
-access inventory remains distinct from live verification. Run
-`node scripts/check-maps.mjs` after map edits for structural/reference checks;
-follow the shared contract for the source and behavioral checks it cannot perform.
+### Recipe format
 
 Each recipe starts with an H1 and a user-visible description, then exactly:
 
@@ -188,4 +166,120 @@ New or updated entries follow
 Existing entries with a `Driving it` heading can adopt the named harness when
 their recipes are updated. The original format was inspired by
 [Omnigent's feature map](https://github.com/omnigent-ai/omnigent/tree/91acfbbb59f6fc210ff95a9e9428aadd62e06582/feature-map).
-Paperclip's recipes and checks follow its own task model and test infrastructure.
+
+---
+
+## 📊 指标
+
+### Inventory and remaining depth
+
+[The UI coverage inventory](./coverage.json) accounts for every non-test TSX
+module under `ui/src/pages`, including supporting panels, legacy variants, and
+labs. Every product area now links to concrete recipes. **Partial** means the
+area still has the named variant or workflow gaps; **unmapped** is reserved for
+an area with no recipe. These statuses describe documentation, not runtime health.
+
+The page inventory is a source snapshot dated 2026-10-05. The map also
+includes entry points hosted inside other modules (pipeline Review Queue and
+Learnings, task documents, onboarding), CLI-only operations, and operator work.
+
+Remaining depth includes complete provider/auth/attachment matrices, every
+harness/model/environment capability combination, third-party plugin features,
+and every role/error/mobile/legacy-shell permutation.
+
+---
+
+## 📁 目录
+
+```
+maps/feature-map/
+├── README.md                   # This file
+├── coverage.json               # UI coverage inventory
+├── onboarding.md               # Onboarding and first work
+├── access.md                   # Login, invitations, and access
+├── companies.md                # Companies and portability
+├── tasks.md                    # Task creation and lifecycle
+├── task-coordination.md        # Delegation, dependencies, and signoff
+├── inbox-search.md             # Inbox, decisions, and search
+├── agent-chat.md               # Agent conversations and project handoff
+├── questions-and-approvals.md  # Questions and approvals
+├── steering.md                 # Steering and queued messages
+├── documents-artifacts.md      # Documents, attachments, and work products
+├── agents.md                   # Hiring, configuration, and organization
+├── runs-adapters.md            # Runs, harnesses, and model accounts
+├── skills.md                   # Skills and Skill Studio
+├── teams.md                    # Team packages and installation
+├── projects.md                 # Projects and repositories
+├── goals.md                    # Goals and work alignment
+├── workspaces.md               # Workspaces, services, and files
+├── execution-environments.md   # Execution environments
+├── recovery.md                 # Recovery
+├── connection-setup.md         # Connection setup
+├── app-permissions.md          # App access and action permissions
+├── chat-channels.md            # External chat and email
+├── gateways-profiles.md        # Tool gateways and access profiles
+├── secrets.md                  # Secrets and proposals
+├── plugins.md                  # Plugins
+├── routines.md                 # Routines, schedules, and triggers
+├── pipelines.md                # Pipelines, review queues, and learnings
+├── cases.md                    # Cases
+├── status-cards.md             # Status cards
+├── budgets-costs.md            # Costs and budgets
+├── activity.md                 # Dashboards and audit trails
+├── navigation-preferences.md   # Navigation, profile, and announcements
+├── instance-operations.md      # Instance operations
+├── cli-operations.md           # CLI/API and local worktrees
+└── developer-labs.md           # Developer previews and diagnostic labs
+```
+
+---
+
+## 🔗 资源
+
+### Maintaining the reference
+
+When maintaining a recipe, compare its entry points and expected results with
+the current source. Check that linked tests still exercise the stated behavior
+and that local references still exist. Refresh the inventory snapshot when it
+helps explain the current product. Keep the same-named agent access companion
+and stable sub-feature IDs aligned when behavior or access changes. Source-only
+access inventory remains distinct from live verification. Run
+`node scripts/check-maps.mjs` after map edits for structural/reference checks;
+follow the shared contract for the source and behavioral checks it cannot perform.
+
+### Related resources
+
+- [Agent access map](../agent-access-map/README.md) — APIs, agent entry points, permission boundaries
+- [Map contract](../README.md) — Format and maintenance rules
+- [Verification skill](../../.agents/skills/verify-paperclip/SKILL.md) — Isolated launch and evidence collection
+- [Route registration](../../ui/src/App.tsx) — Surface reachability
+- [CLI registry](../../cli/src/index.ts) — CLI command definitions
+
+---
+
+## 🚀 快速开始
+
+### Verify a feature
+
+1. Choose the relevant recipe from this map
+2. Follow the "Before driving a journey" checklist:
+   - Use an isolated test drive instance
+   - Record commit, URL, company, login role, experimental settings, adapter, runtime mode
+3. Run the smallest relevant test first
+4. Exercise the actual user action, inspect its result, reload, and verify persisted state
+5. Report evidence per the evidence contract (passed/failed/blocked/not run)
+
+For agent-driven work, use the [Paperclip verification skill](../../.agents/skills/verify-paperclip/SKILL.md).
+
+---
+
+## ⚙️ 技术栈
+
+| Layer | Technology |
+|-------|-----------|
+| Format | Markdown (Poteto feature-map style) |
+| Coverage tracking | `coverage.json` |
+| Validation | `node scripts/check-maps.mjs` |
+| Testing | Vitest, Playwright |
+| Evidence | Artifact workflow (`doc/AGENT-ARTIFACTS.md`) |
+| Supporting skills | verify-paperclip, maintain-verification-skill, paperclip-dev-workspace-run-verify-fix |

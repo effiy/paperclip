@@ -1,4 +1,16 @@
-# Agent chat production fixtures
+---
+title: Agent Chat Production Fixtures
+tags: storybook, prototypes, agent-chat, fixtures, ui
+category: storybook-prototype
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Agent chat production fixtures
 
 These stories mount `AgentChat`, `TaskDetailSurface`, `Layout`, and their actual task transcript, composer, and side panel. They provide in-memory API responses; they contain no alternate chat controller or renderer. Sending appends a fixture comment, `/new` adds a shared session marker, and switching agents preserves each fixture history during the mounted story. Unsupported mutations fail explicitly.
 

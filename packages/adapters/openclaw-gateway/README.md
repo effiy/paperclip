@@ -1,20 +1,40 @@
+---
+title: "OpenClaw Gateway Adapter"
+tags: ["adapters", "openclaw", "gateway", "websocket", "transport"]
+category: "packages"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # OpenClaw Gateway Adapter
+
+---
+
+## 💡 概述
 
 This document describes how `@paperclipai/adapter-openclaw-gateway` invokes OpenClaw over the Gateway protocol.
 
-## Transport
+---
+
+## ⚡ 功能
+
+### Transport
 
 This adapter always uses WebSocket gateway transport.
 
 - URL must be `ws://` or `wss://`
 - Connect flow follows gateway protocol:
-1. receive `connect.challenge`
-2. send `req connect` (protocol/client/auth/device payload)
-3. send `req agent`
-4. wait for completion via `req agent.wait`
-5. stream `event agent` frames into Paperclip logs/transcript parsing
+  1. receive `connect.challenge`
+  2. send `req connect` (protocol/client/auth/device payload)
+  3. send `req agent`
+  4. wait for completion via `req agent.wait`
+  5. stream `event agent` frames into Paperclip logs/transcript parsing
 
-## Auth Modes
+### Auth Modes
 
 Gateway credentials can be provided in any of these ways:
 
@@ -25,7 +45,7 @@ Gateway credentials can be provided in any of these ways:
 
 When a token is present and `authorization` header is missing, the adapter derives `Authorization: Bearer <token>`.
 
-## Device Auth
+### Device Auth
 
 By default the adapter sends a signed `device` payload in `connect` params.
 
@@ -34,7 +54,7 @@ By default the adapter sends a signed `device` payload in `connect` params.
 - without `devicePrivateKeyPem`, the adapter generates an ephemeral Ed25519 keypair per run
 - when `autoPairOnFirstConnect` is enabled (default), the adapter handles one initial `pairing required` by calling `device.pair.list` + `device.pair.approve` over shared auth, then retries once.
 
-## Session Strategy
+### Session Strategy
 
 The adapter supports the same session routing model as HTTP OpenClaw mode:
 
@@ -43,7 +63,7 @@ The adapter supports the same session routing model as HTTP OpenClaw mode:
 
 Resolved session key is sent as `agent.sessionKey`.
 
-## Payload Mapping
+### Payload Mapping
 
 The agent request is built as:
 
@@ -55,14 +75,18 @@ The agent request is built as:
   - all `payloadTemplate` fields merged in
   - `agentId` from config if set and not already in template
 
-## Timeouts
+---
+
+## 🏛️ 设计
+
+### Timeouts
 
 - `timeoutSec` controls adapter-level request budget
 - `waitTimeoutMs` controls `agent.wait.timeoutMs`
 
 If `agent.wait` returns `timeout`, adapter returns `openclaw_gateway_wait_timeout`.
 
-## Log Format
+### Log Format
 
 Structured gateway event logs use:
 
@@ -71,15 +95,83 @@ Structured gateway event logs use:
 
 UI/CLI parsers consume these lines to render transcript updates.
 
-## No-remote-git contract
+### No-remote-git contract
 
 Like every Paperclip adapter, this one must treat the local execution-workspace
-cwd as the only persistence boundary across runs — no `git push` from runtime
+cwd as the only persistence boundary across runs -- no `git push` from runtime
 code, no assuming a `git remote` exists. The gateway transport here doesn't
 touch the workspace directly, but if you extend the adapter to ship code to
 the OpenClaw side, use the round-trip helpers in `@paperclipai/adapter-utils`
-(`prepareWorkspaceForSshExecution` → `restoreWorkspaceFromSshExecution`)
+(`prepareWorkspaceForSshExecution` -> `restoreWorkspaceFromSshExecution`)
 rather than reaching for a git remote. See
 [`packages/adapters/AUTHORING.md`](../AUTHORING.md#no-remote-git-contract-cross-run-persistence)
 for the full contract and the pinning test at
 [`packages/adapter-utils/src/ssh-fixture.test.ts`](../../adapter-utils/src/ssh-fixture.test.ts).
+
+---
+
+## 📁 目录
+
+```
+packages/adapters/openclaw-gateway/
+├── README.md              # This file
+├── package.json           # Package metadata
+├── src/
+│   └── index.ts           # Gateway adapter implementation
+└── dist/                  # Compiled output
+```
+
+---
+
+## 🔗 资源
+
+### Related documentation
+
+- [Adapter authoring guide](../AUTHORING.md) -- In-repo adapter conventions and no-remote-git contract
+- [@paperclipai/adapter-utils](../../adapter-utils/README.md) -- Workspace sync and round-trip helpers
+- [ssh-fixture.test.ts](../../adapter-utils/src/ssh-fixture.test.ts) -- No-remote-git contract pinning test
+
+---
+
+## 🚀 快速开始
+
+### Basic configuration
+
+```json
+{
+  "adapterType": "openclaw_gateway",
+  "adapterConfig": {
+    "url": "wss://openclaw.example.com/gateway",
+    "authToken": "<your-token>",
+    "sessionKeyStrategy": "issue",
+    "timeoutSec": 600,
+    "waitTimeoutMs": 300000
+  }
+}
+```
+
+### With device auth
+
+```json
+{
+  "adapterType": "openclaw_gateway",
+  "adapterConfig": {
+    "url": "wss://openclaw.example.com/gateway",
+    "authToken": "<your-token>",
+    "autoPairOnFirstConnect": true,
+    "sessionKeyStrategy": "issue"
+  }
+}
+```
+
+---
+
+## ⚙️ 技术栈
+
+| Layer | Technology |
+|-------|-----------|
+| Transport | WebSocket (ws:// or wss://) |
+| Protocol | OpenClaw Gateway protocol |
+| Auth | Bearer token, shared password, device Ed25519 keypair |
+| Session | issue-based, fixed, or per-run strategy |
+| Log format | Structured gateway event logs with `[openclaw-gateway]` prefix |

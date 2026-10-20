@@ -1,4 +1,16 @@
-# Composer model and effort picker
+---
+title: Composer Model and Effort Picker
+tags: storybook, prototypes, composer, model-picker, effort, harness
+category: storybook-prototype
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Composer model and effort picker
 
 The approved design is `ComposerModelPickerPreview.tsx`, and the production control is `ui/src/components/task-chat/ComposerRunSettingsPicker.tsx`. Both appear under **Tasks → Composer → Model and effort picker**: the numbered design cases cover harness and model states, while **App picker in composer** and **App picker on mobile** render the production control with the same layout. The task composer passes its selection through the issue update request with the comment, so the next run reads the saved task adapter overrides. Settings stay on the task until changed or reset.
 

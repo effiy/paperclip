@@ -1,4 +1,20 @@
+---
+title: "Apps, Connections, and Integrations"
+tags: ["connections", "integrations", "apps-v2", "governance", "identity"]
+category: "documentation"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # Apps, Connections, and Integrations
+
+---
+
+## 💡 概述
 
 Audience: internal engineers and product contributors working on integrations.
 
@@ -21,7 +37,11 @@ Provider notes: [Google Workspace](./GOOGLE-WORKSPACE.md),
 Post-read action: classify a new integration request, pick the right Paperclip
 layer to change, and avoid creating a parallel connection framework.
 
-## Decision Record
+---
+
+## ⚡ 功能
+
+### Decision Record
 
 Board decisions from [PAP-13211](/PAP/issues/PAP-13211) make the Apps v2
 substrate on the PAP-10341 branch canonical:
@@ -48,7 +68,7 @@ substrate on the PAP-10341 branch canonical:
   Paperclip tokens and existing profiles/rules. They do not get a separate
   permission model.
 
-## Canonical Object Model
+### Canonical Object Model
 
 Use **connection** as the unifying noun. A connection is four things:
 
@@ -71,7 +91,11 @@ MCP is a transport, not a product category. "Install the Discord app",
 "connect Google Drive", and "add an MCP endpoint" all produce governed
 connections with different transport/auth values.
 
-## Layer Stack
+---
+
+## 🏛️ 设计
+
+### Layer Stack
 
 When you are unsure where a change belongs, place it on the narrowest layer that
 solves the problem:
@@ -89,13 +113,11 @@ The agent should not hold a durable provider credential. It should hold a
 Paperclip run/session token; the server or broker resolves the connection,
 checks governance, invokes the provider, and writes audit.
 
-## Identity vs. connections
+### Identity vs. connections
 
 Signing a user *in* and connecting a *resource* are different planes with
 different owners, different token profiles, and different homes. Do not merge
-them. This section is the public, connections-side statement of the identity
-model so connector implementers inherit the rule without depending on private
-identity-service documentation or re-deriving it.
+them.
 
 | Plane | Question | Lives where | Token profile |
 | --- | --- | --- | --- |
@@ -103,22 +125,15 @@ identity-service documentation or re-deriving it.
 | **P2. Connections (Apps)** | *What may your agents touch?* | Paperclip App instances (`tool_connections`), acquired via the **connect broker** for hosted + self-hosted | Rich-scope, long-lived resource tokens in the **instance's** encrypted vault; per-agent grants; risk-tier policy defaults |
 | **P3. Login with Paperclip** | *Who may authenticate against us?* | `paperclip-id` OIDC provider + DB-backed client registry | Our ES256 ID/access tokens issued *by* us to registered RPs (instances, the broker, future third parties) |
 
-Everything in `doc/connections/` — the [First-30 matrix](./FIRST-30-MATRIX.md),
-the [connection authoring runbook](./CONNECTOR-PLAYBOOK.md), and the connect-broker work —
-lives on **plane P2**. It never acquires, stores, or brokers a P1 sign-in token.
+Everything in `doc/connections/` lives on **plane P2**. It never acquires, stores, or brokers a P1 sign-in token.
 
-### The standing rule (D7)
-
-Adopted as a standing rule (decision D7) with the identity-model plan. State it
-verbatim in any P2 design so the app-store work cannot drift into merging the
-planes:
+#### The standing rule (D7)
 
 > Sign-in tokens are never reused as resource tokens; id.paperclip.ing never
 > stores resource tokens; no connections hub on the ID service.
 
 P2 tokens flow broker → instance vault as pass-through only; the id.paperclip.ing
-Account page therefore must **not** grow a "Connections" hub. The reasons to
-hold the planes apart (from the plan §3):
+Account page therefore must **not** grow a "Connections" hub. The reasons:
 
 - **Scope discipline.** Sign-in wants the narrowest grant; connections want
   deliberately broad ones. One button that does both is how you grant repo
@@ -133,15 +148,8 @@ hold the planes apart (from the plan §3):
   separate pages with separate names.
 
 The explicit Vercel Connect exception does not change D7 or merge P1 and P2.
-The operator chooses Vercel as the P2 credential authority for an individual
-connection. `id.paperclip.ing` is not involved, and neither sign-in tokens nor
-provider tokens pass through it. The deployment's Vercel access token or
-workload OIDC identity is bootstrap authority for that external vault, not a
-provider resource credential.
 
 ### Naming alignment
-
-Use the surface-correct name for each plane; they intentionally differ:
 
 | Surface | Plane | Name to use |
 | --- | --- | --- |
@@ -149,7 +157,7 @@ Use the surface-correct name for each plane; they intentionally differ:
 | id.paperclip.ing Account | P1 | **"Ways to sign in"** |
 | id.paperclip.ing admin | P3 | **"OIDC clients"** (until the app store productizes it) |
 
-## Packaging Rule
+### Packaging Rule
 
 Default to a **catalog entry** when an integration can be described as metadata:
 manifest, auth config, action catalog, resource filters, and policy defaults.
@@ -162,7 +170,41 @@ profile, policy, credential, and audit model.
 Use a **skill** for agent instructions. Skills may use connections; they must
 not own durable tokens.
 
-## Canonical Docs
+---
+
+## 📁 目录
+
+```
+doc/connections/
+├── README.md                     # This file
+├── CONNECTOR-PLAYBOOK.md         # Connection authoring runbook
+├── AI-CONNECTIONS.md             # Runtime authentication
+├── MEMORY.md                     # Experimental memory connectors
+├── FIRST-30-MATRIX.md            # Source matrix for connector work
+├── GLOSSARY.md                   # Product and internal terms
+├── SECURITY-THREAT-MODEL.md      # Security threat model
+├── GENERIC-REMOTE-MCP.md         # Connecting remote MCP servers
+├── VERCEl-CONNECT.md             # Operator guide
+├── SLACK-AUTOMATIC-SETUP.md      # Slack app setup
+├── GOOGLE-WORKSPACE.md           # Provider notes
+├── GMAIL.md                      # Provider notes
+├── ASANA.md                      # Provider notes
+├── SENTRY.md                     # Provider notes
+├── POSTHOG.md                    # Provider notes
+├── NEON.md                       # Provider notes
+├── SUPERAGENT.md                 # Provider notes
+├── GAUGE.md                      # Provider notes
+├── AGENTMAIL.md                  # Provider notes
+├── TELEM.md                      # Provider notes
+├── IMESSAGE-PHOTON.md            # Provider notes
+└── ENTERPRET.md                  # Provider notes
+```
+
+---
+
+## 🔗 资源
+
+### Canonical Docs
 
 - [Glossary](./GLOSSARY.md) defines product and internal terms.
 - [Identity vs. connections](#identity-vs-connections) is the public statement
@@ -177,9 +219,7 @@ not own durable tokens.
   Paperclip code change, and how sign-in resolves a client.
 - [Connection authoring runbook](./CONNECTOR-PLAYBOOK.md) is the one
   end-to-end, agent-executable guide for adding a vendor as a catalog entry on
-  Apps v2: research, connection-type selection, OAuth/API-key/generated-URL
-  setup, encrypted credential handling, branding, implementation, browser and
-  live-provider testing, verification, and PR submission.
+  Apps v2.
 - [Vercel Connect operator guide](./VERCEL-CONNECT.md) documents the optional
   external credential source, deployment flags, runtime resolution, recovery,
   and smoke requirements.
@@ -187,7 +227,7 @@ not own durable tokens.
   runbook for the current gateway, profile, policy, approval, runtime, and audit
   APIs.
 
-## Migration Notes
+### Migration Notes
 
 Connections v1 contributed useful policy, UX, and rollout thinking, but its
 implementation branch is no longer the target. When you see old tickets or code
@@ -209,3 +249,32 @@ superseded with a link to the replacement.
 
 For Slack chat bot creation, installation, recovery, and live qualification, see
 [Automatic Slack app setup](SLACK-AUTOMATIC-SETUP.md).
+
+---
+
+## 🚀 快速开始
+
+When adding a provider, follow the [Connection authoring runbook](./CONNECTOR-PLAYBOOK.md):
+
+1. Research the provider and classify the connection type.
+2. Set up OAuth, API key, or generated URL authentication.
+3. Handle encrypted credentials.
+4. Add branding.
+5. Implement the integration.
+6. Run browser and live-provider testing.
+7. Verify and submit a PR.
+
+For classification of new integration requests, consult the [First-30 matrix](./FIRST-30-MATRIX.md) to pick the right Paperclip layer.
+
+---
+
+## ⚙️ 技术栈
+
+| Layer | Technology |
+|-------|-----------|
+| Connection model | Apps v2 (`tool_applications`, `tool_connections`) |
+| Transport | MCP, native REST/OpenAPI, OAuth app install, webhook |
+| Auth | OAuth 2.0, API key/PAT, app installation |
+| Credential storage | `company_secrets` (encrypted), Vercel Connect (optional external) |
+| Governance | Profiles, policy rules, audit events |
+| Identity | paperclip-id (OIDC), Paperclip run/session tokens |

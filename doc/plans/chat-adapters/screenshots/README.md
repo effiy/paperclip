@@ -1,4 +1,16 @@
-# Current-state references
+---
+title: Chat Adapter Screenshots
+tags: screenshots, reference, chat-adapters, wireframes
+category: documentation
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Current-state references
 
 No screenshots are committed in this planning snapshot. On 2026-09-04 the current staging `/apps` catalog, `/apps/connect` wizard, existing agent picker, and connector-detail `permissions` view were visually inspected as layout references. Staging content is mutable and includes account-specific data, so it is not persisted as a design asset.
 

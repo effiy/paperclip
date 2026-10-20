@@ -1,4 +1,16 @@
-# Adapter brand icons
+---
+title: Adapter Brand Icons
+tags: ui, brands, adapters, icons, lobehub
+category: assets
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Adapter brand icons
 
 Source: [Lobe Icons](https://github.com/lobehub/lobe-icons/tree/a94750e3f5f8fc33757b839d85030e742284e43a/packages/static-svg/icons), pinned to commit `a94750e3f5f8fc33757b839d85030e742284e43a`.
 

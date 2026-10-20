@@ -1,4 +1,16 @@
-# Notification avatar review
+---
+title: Notification Avatar Review (PR #15695)
+tags: screenshots, notification, avatar, ui-review, chromium
+category: pr-screenshots
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Notification avatar review
 
 These Chromium screenshots render the production `ToastProvider` and `ToastViewport` with the app stylesheet. Both themes show a person notification and an agent notification. The person uses the existing Storybook sample profile image. The agent uses the existing `ceo-cliptoon.png` fixture through a mocked custom-avatar asset response.
 

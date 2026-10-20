@@ -1,29 +1,69 @@
+---
+title: "exe.dev Sandbox Provider Plugin"
+tags: ["exe.dev", "sandbox", "provider", "plugin", "paperclip"]
+category: "sandbox-provider"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # `@paperclipai/plugin-exe-dev`
+
+---
+
+## 💡 概述
 
 Published exe.dev sandbox provider plugin for Paperclip.
 
 This package lives in the Paperclip monorepo, but it is intentionally excluded from the root `pnpm` workspace and shaped to publish and install like a standalone npm package. That lets operators install it from the Plugins page by package name without introducing root lockfile churn.
 
-## Install
+---
 
-From a Paperclip instance, install:
+## ⚡ 功能
 
-```text
-@paperclipai/plugin-exe-dev
-```
+### VM lifecycle and SSH
 
-## Configuration
+- The current implementation provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM.
+- Reusable leases keep the VM alive between runs. exe.dev does not expose a documented "stop and later resume" command in the public CLI docs, so `reuseLease: true` means "retain the VM" rather than "suspend it."
+- The provisioning path uses `https://exe.dev/exec`, which exe.dev documents as a command-style HTTPS API with a 30-second request timeout.
+- Probes still create and delete a real exe.dev VM through `/exec`, and so do the `new`/`rm` calls inside the normal acquire/release lifecycle.
+
+### Source VM cloning
+
+- Set `sourceVm` ("Source VM" in the form) to the name of an existing exe.dev VM to copy it for each run with `exe.dev cp`, disk and config included, instead of creating a fresh VM with `exe.dev new`.
+- `cp` accepts only the VM name, `cpu`, `memory`, and `disk`, so config validation rejects `sourceVm` together with `image`, `command`, `comment`, `env`, `integrations`, `tags`, `setupScript`, or `prompt`.
+- The default setup script does not run either, so the source VM must already have Node 24.11+ and accept the configured SSH key.
+- Do not keep secrets on the source VM: every copy inherits its disk. `cp` also goes through `/exec`, so a large disk copy must finish inside the same 30-second limit.
+
+### Setup script
+
+- exe.dev runs `--setup-script` as the unprivileged `exedev` user, not as root. That user has passwordless `sudo`, so any system-level steps in a custom `setupScript` must invoke `sudo` explicitly.
+- When you omit `setupScript`, the plugin supplies a default that installs Node 24 via the official nodesource script -- Paperclip's sandbox callback bridge is a Node program, so the VM needs `node` on `PATH` before the bridge can launch.
+
+---
+
+## 📊 指标
+
+待补充
+
+---
+
+## 🏛️ 设计
+
+### Configuration
 
 Configure exe.dev from `Instance Settings -> Environments`, not from the plugin's plugin page.
 
 - Put the exe.dev API token on the sandbox environment itself.
 - When you save an environment, Paperclip stores pasted API keys and pasted SSH private keys as company secrets.
 - `EXE_API_KEY` remains an optional host-level fallback when an environment omits the API token.
-- The current implementation provisions VMs through exe.dev's HTTPS API and runs commands through direct SSH to the created VM.
 
 To use the provider successfully, the environment/host needs all of the following:
 
-- An exe.dev API token that allows the lifecycle commands the provider uses: `new`, `ls`, and `rm`, plus `cp` when `sourceVm` is set. exe.dev answers 403 for a command the token does not list. `whoami` and `help` are recommended for manual debugging. `restart` is only needed if you extend the provider to restart retained VMs.
+- An exe.dev API token that allows the lifecycle commands the provider uses: `new`, `ls`, and `rm`, plus `cp` when `sourceVm` is set. exe.dev answers 403 for a command the token does not list.
 - SSH access from the Paperclip host to the resulting `*.exe.xyz` VMs.
 - An SSH private key that exe.dev already recognizes. You can either:
   - paste the private key into the environment config via `sshPrivateKey`
@@ -34,13 +74,39 @@ To use the provider successfully, the environment/host needs all of the followin
 Operational notes:
 
 - If exe.dev replies `Please complete registration by running: ssh exe.dev`, the host key has not finished exe.dev onboarding yet.
-- Reusable leases keep the VM alive between runs. exe.dev does not expose a documented "stop and later resume" command in the public CLI docs, so `reuseLease: true` means "retain the VM" rather than "suspend it."
-- The provisioning path uses `https://exe.dev/exec`, which exe.dev documents as a command-style HTTPS API with a 30-second request timeout. Typical `new` calls are expected to fit inside that limit; command execution itself does not use `/exec`.
-- Probes still create and delete a real exe.dev VM through `/exec`, and so do the `new`/`rm` calls inside the normal acquire/release lifecycle. Treat all of those as real provisioning cost, not just probes.
-- Set `sourceVm` ("Source VM" in the form) to the name of an existing exe.dev VM to copy it for each run with `exe.dev cp`, disk and config included, instead of creating a fresh VM with `exe.dev new`. This lets you prepare one VM with your toolchain and caches and start every run from it. `cp` accepts only the VM name, `cpu`, `memory`, and `disk`, so config validation rejects `sourceVm` together with `image`, `command`, `comment`, `env`, `integrations`, `tags`, `setupScript`, or `prompt`. The default setup script does not run either, so the source VM must already have Node 24.11+ and accept the configured SSH key. Do not keep secrets on the source VM: every copy inherits its disk. `cp` also goes through `/exec`, so a large disk copy must finish inside the same 30-second limit.
-- exe.dev runs `--setup-script` as the unprivileged `exedev` user, not as root. That user has passwordless `sudo`, so any system-level steps in a custom `setupScript` must invoke `sudo` explicitly (for example `sudo apt-get install -y …`). When you omit `setupScript`, the plugin supplies a default that installs Node 24 via the official nodesource script — Paperclip's sandbox callback bridge is a Node program, so the VM needs `node` on `PATH` before the bridge can launch.
+- Treat all provisioning calls as real cost, not just probes.
 
-## Local development
+### Package layout
+
+- `src/manifest.ts` declares the sandbox-provider driver metadata
+- `src/plugin.ts` implements the environment lifecycle hooks
+- `paperclipPlugin.manifest` and `paperclipPlugin.worker` point the host at the built plugin entrypoints in `dist/`
+
+---
+
+## 📁 目录
+
+待补充
+
+---
+
+## 🔗 资源
+
+待补充
+
+---
+
+## 🚀 快速开始
+
+### Install
+
+From a Paperclip instance, install:
+
+```text
+@paperclipai/plugin-exe-dev
+```
+
+### Local development
 
 ```bash
 cd packages/plugins/sandbox-providers/exe-dev
@@ -52,8 +118,13 @@ pnpm typecheck
 
 These commands assume the repo root has already been installed once so the local `@paperclipai/plugin-sdk` workspace package is available to the compiler during development.
 
-## Package layout
+---
 
-- `src/manifest.ts` declares the sandbox-provider driver metadata
-- `src/plugin.ts` implements the environment lifecycle hooks
-- `paperclipPlugin.manifest` and `paperclipPlugin.worker` point the host at the built plugin entrypoints in `dist/`
+## ⚙️ 技术栈
+
+- Paperclip Plugin SDK
+- exe.dev HTTPS API (`/exec`)
+- SSH
+- Node 24.11+
+- TypeScript
+- pnpm (standalone package, excluded from monorepo workspace)

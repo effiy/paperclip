@@ -1,10 +1,108 @@
+---
+title: "Paperclip Evals"
+tags: ["evals", "testing", "promptfoo", "agent-behavior"]
+category: "testing"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # Paperclip Evals
+
+---
+
+## 💡 概述
 
 Eval framework for testing Paperclip agent behaviors across models and prompt versions.
 
 See [the evals framework plan](../doc/plans/2026-03-13-agent-evals-framework.md) for full design rationale.
 
-## Quick Start
+---
+
+## ⚡ 功能
+
+### What's tested
+
+Phase 0 covers narrow behavior evals for the Paperclip heartbeat skill:
+
+| Case | Category | What it checks |
+|------|----------|---------------|
+| Assignment pickup | `core` | Agent picks up todo/in_progress tasks correctly |
+| Progress update | `core` | Agent writes useful status comments |
+| Blocked reporting | `core` | Agent recognizes and reports blocked state |
+| Approval required | `governance` | Agent requests approval instead of acting |
+| Company boundary | `governance` | Agent refuses cross-company actions |
+| MCP allowed read tool | `mcp_gateway` | Agent records successful gateway calls without unnecessary approval |
+| MCP denied tool | `mcp_gateway` | Agent fails closed without retrying or bypassing denied unsafe tools |
+| MCP pending approval | `mcp_gateway` | Agent waits on the gateway-created approval path |
+| MCP denied approval | `mcp_gateway` | Agent honors rejected or unapproved tool actions |
+| MCP rate limit | `mcp_gateway` | Agent backs off without crashing or busy-looping |
+| MCP missing credential | `mcp_gateway` | Agent blocks on credential repair without leaking or inventing secrets |
+| MCP revoked session | `mcp_gateway` | Agent stops using stale gateway tokens and avoids raw upstream fallback |
+| MCP header forwarding | `mcp_gateway` | Agent reports forwarded transport/credential headers from redacted audit evidence |
+| MCP named target | `mcp_gateway` | Agent uses the exact on-demand named gateway tool rather than an ambiguous upstream name |
+| MCP elicitation | `mcp_gateway` | Agent asks the human/board for missing input instead of fabricating it |
+| MCP approved target drift | `mcp_gateway` | Agent treats changed catalog/schema/credential snapshots as stale approval |
+| No work exit | `core` | Agent exits cleanly with no assignments |
+| Checkout before work | `core` | Agent always checks out before modifying |
+| 409 conflict handling | `core` | Agent stops on 409, picks different task |
+| Memory provider binding | `phase5_memory` | Agent honors agent override before company default |
+| Memory provenance audit | `phase5_memory` | Agent preserves inspectable source and operation records |
+| Memory hook cost/trust | `phase5_memory` | Agent keeps memory hook cost attribution and source trust visible |
+| Board command work objects | `phase5_control_surface` | Chat-like board commands create auditable work objects |
+
+Phase 5 memory/control-surface prompt evals should be paired with deterministic server/shared tests for:
+
+- memory provider resolution order: agent override, then company default
+- memory operation audit rows including company, agent, issue, run, provider, source, and cost references
+- hook-delivered memory payloads preserving source trust and cost attribution fields
+- board command/chat-like routes creating auditable issues, comments, documents, approvals, or work products
+
+---
+
+## 🏛️ 设计
+
+### Phases
+
+- **Phase 0 (current):** Promptfoo bootstrap - narrow behavior evals with deterministic assertions
+- **Phase 1:** TypeScript eval harness with seeded scenarios and hard checks
+- **Phase 2:** Pairwise and rubric scoring layer
+- **Phase 3:** Efficiency metrics integration
+- **Phase 4:** Production-case ingestion
+
+### Adding new cases
+
+1. Add a YAML file to `evals/promptfoo/tests/`
+2. Follow the existing case format (see `core.yaml` for reference)
+3. Run `promptfoo eval` to test
+
+---
+
+## 📁 目录
+
+```
+evals/
+├── README.md                  # This file
+├── promptfoo/
+│   ├── promptfooconfig.yaml   # Promptfoo configuration
+│   └── tests/
+│       ├── core.yaml          # Core behavior cases
+│       └── ...                # Additional test cases
+```
+
+---
+
+## 🔗 资源
+
+- [Evals framework plan](../doc/plans/2026-03-13-agent-evals-framework.md) — Full design rationale
+- See `pnpm evals:smoke` and `pnpm evals:run` for additional run scripts defined in root `package.json`
+
+---
+
+## 🚀 快速开始
 
 ### Prerequisites
 
@@ -45,53 +143,13 @@ npx promptfoo@0.103.3 eval -c promptfooconfig.yaml \
 promptfoo view
 ```
 
-### What's tested
+---
 
-Phase 0 covers narrow behavior evals for the Paperclip heartbeat skill:
+## ⚙️ 技术栈
 
-| Case | Category | What it checks |
-|------|----------|---------------|
-| Assignment pickup | `core` | Agent picks up todo/in_progress tasks correctly |
-| Progress update | `core` | Agent writes useful status comments |
-| Blocked reporting | `core` | Agent recognizes and reports blocked state |
-| Approval required | `governance` | Agent requests approval instead of acting |
-| Company boundary | `governance` | Agent refuses cross-company actions |
-| MCP allowed read tool | `mcp_gateway` | Agent records successful gateway calls without unnecessary approval |
-| MCP denied tool | `mcp_gateway` | Agent fails closed without retrying or bypassing denied unsafe tools |
-| MCP pending approval | `mcp_gateway` | Agent waits on the gateway-created approval path |
-| MCP denied approval | `mcp_gateway` | Agent honors rejected or unapproved tool actions |
-| MCP rate limit | `mcp_gateway` | Agent backs off without crashing or busy-looping |
-| MCP missing credential | `mcp_gateway` | Agent blocks on credential repair without leaking or inventing secrets |
-| MCP revoked session | `mcp_gateway` | Agent stops using stale gateway tokens and avoids raw upstream fallback |
-| MCP header forwarding | `mcp_gateway` | Agent reports forwarded transport/credential headers from redacted audit evidence |
-| MCP named target | `mcp_gateway` | Agent uses the exact on-demand named gateway tool rather than an ambiguous upstream name |
-| MCP elicitation | `mcp_gateway` | Agent asks the human/board for missing input instead of fabricating it |
-| MCP approved target drift | `mcp_gateway` | Agent treats changed catalog/schema/credential snapshots as stale approval |
-| No work exit | `core` | Agent exits cleanly with no assignments |
-| Checkout before work | `core` | Agent always checks out before modifying |
-| 409 conflict handling | `core` | Agent stops on 409, picks different task |
-| Memory provider binding | `phase5_memory` | Agent honors agent override before company default |
-| Memory provenance audit | `phase5_memory` | Agent preserves inspectable source and operation records |
-| Memory hook cost/trust | `phase5_memory` | Agent keeps memory hook cost attribution and source trust visible |
-| Board command work objects | `phase5_control_surface` | Chat-like board commands create auditable work objects |
-
-Phase 5 memory/control-surface prompt evals should be paired with deterministic server/shared tests for:
-
-- memory provider resolution order: agent override, then company default
-- memory operation audit rows including company, agent, issue, run, provider, source, and cost references
-- hook-delivered memory payloads preserving source trust and cost attribution fields
-- board command/chat-like routes creating auditable issues, comments, documents, approvals, or work products
-
-### Adding new cases
-
-1. Add a YAML file to `evals/promptfoo/tests/`
-2. Follow the existing case format (see `core.yaml` for reference)
-3. Run `promptfoo eval` to test
-
-### Phases
-
-- **Phase 0 (current):** Promptfoo bootstrap - narrow behavior evals with deterministic assertions
-- **Phase 1:** TypeScript eval harness with seeded scenarios and hard checks
-- **Phase 2:** Pairwise and rubric scoring layer
-- **Phase 3:** Efficiency metrics integration
-- **Phase 4:** Production-case ingestion
+| Layer | Technology |
+|-------|-----------|
+| Eval framework | Promptfoo |
+| Assertions | Deterministic (Phase 0), TypeScript harness (Phase 1+) |
+| Providers | OpenRouter, Anthropic, OpenAI |
+| Test format | YAML test cases in `evals/promptfoo/tests/` |

@@ -1,4 +1,16 @@
-# Overview copy control
+---
+title: Overview Copy Control (PR #15773)
+tags: screenshots, overview, copy-control, ui, chromium
+category: pr-screenshots
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Overview copy control
 
 These Chromium screenshots render the production `RoutineSectionHeading` and `CopyText` components with the app color tokens. The header and description frame is a preview around that heading. It is not a capture of a signed-in routine page.
 

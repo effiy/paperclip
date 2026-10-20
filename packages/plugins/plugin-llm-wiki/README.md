@@ -1,12 +1,30 @@
+---
+title: "LLM Wiki Plugin"
+tags: ["plugin", "llm", "wiki", "knowledge-management", "paperclip"]
+category: "plugin"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # LLM Wiki
 
-Local-file LLM Wiki plugin for source ingestion, wiki browsing, query, lint, and maintenance workflows.
+---
 
-## Scope
+## 💡 概述
+
+Local-file LLM Wiki plugin for source ingestion, wiki browsing, query, lint, and maintenance workflows.
 
 This package is the standalone home for LLM Wiki behavior. Wiki-specific routes,
 UI, prompts, tools, local-folder templates, migrations, fixtures, and tests live
 here rather than in Paperclip core.
+
+---
+
+## ⚡ 功能
 
 The alpha surface includes:
 
@@ -23,43 +41,11 @@ The alpha surface includes:
 - wiki page writes with plugin path validation, atomic local-folder writes, metadata/revision rows, backlink extraction, and optional stale-hash protection
 - wiki tools for search/read/write/propose patch/source/log/index/backlinks workflows
 
-## Phase 5 Security Gate
+---
 
-Paperclip-derived text ingestion stays limited to issue titles/descriptions, issue comments, and issue documents.
+## 📊 指标
 
-- Issue attachments/assets are **metadata-only** in Phase 5.
-- Issue work products are **metadata-only** in Phase 5.
-- The wiki must not fetch `/api/assets/:id/content`, dereference work-product `url` fields, or store those capability-bearing links in source bundles/snapshots.
-
-The accepted policy lives in [doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md](../../../doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md).
-
-## Development
-
-```bash
-pnpm install
-pnpm dev            # watch builds
-pnpm dev:ui         # local dev server with hot-reload events
-pnpm test
-```
-
-From the Paperclip repo root:
-
-```bash
-pnpm --filter @paperclipai/plugin-llm-wiki typecheck
-pnpm --filter @paperclipai/plugin-llm-wiki test
-pnpm --filter @paperclipai/plugin-llm-wiki build
-```
-
-## Alpha Verification
-
-Run these commands from the Paperclip repo root before handing off alpha plugin
-changes:
-
-```bash
-pnpm --filter @paperclipai/plugin-llm-wiki typecheck
-pnpm --filter @paperclipai/plugin-llm-wiki test
-pnpm --filter @paperclipai/plugin-llm-wiki build
-```
+### Test Coverage
 
 The focused Vitest suite covers:
 
@@ -73,41 +59,44 @@ The focused Vitest suite covers:
 - query session creation, run-id recording, stream event forwarding, and completion updates
 - filing a streamed query answer back into the wiki through a hidden operation
 
-Remaining alpha gaps:
+### Remaining alpha gaps
 
 - Browser screenshot capture is maintained separately under `tests/screenshots`;
   generated `screenshots/` outputs are local artifacts and are ignored by git.
 - Host-level plugin install and live agent invocation still need Paperclip
   server/runtime smoke coverage when preparing a release candidate.
 
+---
 
+## 🏛️ 设计
 
-## Install Into Paperclip
+### Phase 5 Security Gate
 
-```bash
-curl -X POST http://127.0.0.1:3100/api/plugins/install \
-  -H "Content-Type: application/json" \
-  -d '{"packageName":"/Users/dotta/paperclip/.paperclip/worktrees/PAP-3179-design-a-llm-wiki-plugin/packages/plugins/plugin-llm-wiki","isLocalPath":true}'
+Paperclip-derived text ingestion stays limited to issue titles/descriptions, issue comments, and issue documents.
+
+- Issue attachments/assets are **metadata-only** in Phase 5.
+- Issue work products are **metadata-only** in Phase 5.
+- The wiki must not fetch `/api/assets/:id/content`, dereference work-product `url` fields, or store those capability-bearing links in source bundles/snapshots.
+
+The accepted policy lives in [doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md](../../../doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md).
+
+### Managed Agent Instructions
+
+Plugin-managed agent instruction bundles live under:
+
+```text
+agents/<agent-key>/AGENTS.md
 ```
 
-## Build Options
+For this plugin the Wiki Maintainer source bundle is `agents/wiki-maintainer/AGENTS.md`.
+Any additional files in that folder are installed as sibling instruction files
+for the managed agent. The settings health check reports drift from these
+defaults, and resetting the managed agent asks for confirmation before replacing
+customized instructions.
 
-- `pnpm build` uses esbuild presets from `@paperclipai/plugin-sdk/bundlers`.
-- `pnpm build:rollup` uses rollup presets from the same SDK.
+---
 
-After changing manifest-loaded assets such as skills, agent instructions, or
-templates, recompile the local plugin before re-enabling it:
-
-```bash
-pnpm --filter @paperclipai/plugin-llm-wiki build
-```
-
-The package-local `dist/` directory is ignored by git, but local Paperclip
-installs load the compiled `dist/manifest.js` and `dist/worker.js` files at
-runtime. If activation failed before the rebuild, re-enable the plugin or
-restart the Paperclip dev server so the host imports the fresh bundle.
-
-## Local File Layout
+## 📁 目录
 
 ```text
 <configured-wiki-root>/
@@ -145,16 +134,72 @@ default first-install skeleton is copied from the vanilla LLM Wiki layout, with
 `CLAUDE.md` renamed to `AGENTS.md` and Paperclip project overviews, standups,
 decisions, and history kept together under `wiki/projects/<slug>/`.
 
-## Managed Agent Instructions
+---
 
-Plugin-managed agent instruction bundles live under:
+## 🔗 资源
 
-```text
-agents/<agent-key>/AGENTS.md
+- Phase 5 Security Gate: [doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md](../../../doc/plans/2026-05-06-llm-wiki-paperclip-asset-security-gate.md)
+
+---
+
+## 🚀 快速开始
+
+```bash
+pnpm install
+pnpm dev            # watch builds
+pnpm dev:ui         # local dev server with hot-reload events
+pnpm test
 ```
 
-For this plugin the Wiki Maintainer source bundle is `agents/wiki-maintainer/AGENTS.md`.
-Any additional files in that folder are installed as sibling instruction files
-for the managed agent. The settings health check reports drift from these
-defaults, and resetting the managed agent asks for confirmation before replacing
-customized instructions.
+From the Paperclip repo root:
+
+```bash
+pnpm --filter @paperclipai/plugin-llm-wiki typecheck
+pnpm --filter @paperclipai/plugin-llm-wiki test
+pnpm --filter @paperclipai/plugin-llm-wiki build
+```
+
+### Alpha Verification
+
+Run these commands from the Paperclip repo root before handing off alpha plugin changes:
+
+```bash
+pnpm --filter @paperclipai/plugin-llm-wiki typecheck
+pnpm --filter @paperclipai/plugin-llm-wiki test
+pnpm --filter @paperclipai/plugin-llm-wiki build
+```
+
+### Install Into Paperclip
+
+```bash
+curl -X POST http://127.0.0.1:3100/api/plugins/install \
+  -H "Content-Type: application/json" \
+  -d '{"packageName":"/Users/dotta/paperclip/.paperclip/worktrees/PAP-3179-design-a-llm-wiki-plugin/packages/plugins/plugin-llm-wiki","isLocalPath":true}'
+```
+
+### Build Options
+
+- `pnpm build` uses esbuild presets from `@paperclipai/plugin-sdk/bundlers`.
+- `pnpm build:rollup` uses rollup presets from the same SDK.
+
+After changing manifest-loaded assets such as skills, agent instructions, or
+templates, recompile the local plugin before re-enabling it:
+
+```bash
+pnpm --filter @paperclipai/plugin-llm-wiki build
+```
+
+The package-local `dist/` directory is ignored by git, but local Paperclip
+installs load the compiled `dist/manifest.js` and `dist/worker.js` files at
+runtime. If activation failed before the rebuild, re-enable the plugin or
+restart the Paperclip dev server so the host imports the fresh bundle.
+
+---
+
+## ⚙️ 技术栈
+
+- Paperclip Plugin SDK
+- TypeScript
+- esbuild / rollup (via `@paperclipai/plugin-sdk/bundlers`)
+- Vitest
+- Local file API (Paperclip)

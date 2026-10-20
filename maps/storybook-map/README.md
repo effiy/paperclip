@@ -1,4 +1,20 @@
-# Storybook map
+---
+title: "Storybook Map"
+tags: ["storybook", "ui", "catalog", "component-testing"]
+category: "documentation"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
+# Storybook Map
+
+---
+
+## 💡 概述
 
 The [feature index](INDEX.md) connects the existing Storybook to stable capability
 IDs from the upstream [feature map](../feature-map/README.md). Story files remain
@@ -6,7 +22,11 @@ in `ui/storybook/`. The feature map and its maintenance skill do not depend on
 this catalog. New capabilities or upstream recipe drift are reported to their
 maintainer; this catalog does not redefine product behavior or permissions.
 
-## Ownership
+---
+
+## ⚡ 功能
+
+### Ownership
 
 - [maintain-storybook](../../.agents/skills/maintain-storybook/SKILL.md) owns story
   alignment, fixture corrections, classification, and this catalog.
@@ -15,7 +35,7 @@ maintainer; this catalog does not redefine product behavior or permissions.
 - [DESIGN.md](../../DESIGN.md) governs design. Production verification remains
   with the existing product recipes and verification tools.
 
-## Catalog contract
+### Catalog contract
 
 `catalog.json` is the maintained inventory, with one entry per story file.
 `INDEX.md` is generated from it and the installed Storybook CSF parser. Titles,
@@ -25,7 +45,11 @@ is its primary home; remaining capabilities are lookup references, not copies.
 Foundations/guides and proposals without a mapped capability need an exception
 reason. An absent story is not automatically a feature gap.
 
-## Folders and sidebar
+---
+
+## 🏛️ 设计
+
+### Folders and sidebar
 
 Story files live in `ui/storybook/stories/<primary-feature-area>/`, using the first
 capability's area slug. Related capabilities still point to the same story. Shared
@@ -42,6 +66,8 @@ The `sidebarTitle` can change without changing that identity. Existing story and
 autodocs URLs and screenshot names remain valid. Do not derive a replacement ID
 from a newly organized title. The checker rejects missing or changed explicit IDs,
 incorrect feature folders, and sidebar titles outside their primary feature home.
+
+### Entry dimensions
 
 Each entry records purpose, capability references, review sources/date/fingerprint,
 notes, and three independent dimensions:
@@ -69,7 +95,35 @@ affected callers. Update fingerprints only after reviewing the change, and add
 missing dependencies when discovered. Date/revision context for the initial pass
 and executed evidence belong in [REVIEW.md](REVIEW.md).
 
-## Maintenance commands
+---
+
+## 📁 目录
+
+```
+maps/storybook-map/
+├── README.md            # This file
+├── INDEX.md             # Generated feature index
+├── REVIEW.md            # Review context and evidence
+└── catalog.json         # Maintained catalog inventory
+```
+
+---
+
+## 🔗 资源
+
+### Related resources
+
+- [Feature map](../feature-map/README.md) — Product capability definitions
+- [DESIGN.md](../../DESIGN.md) — Design system governance
+- [Storybook workflow](../../doc/DEVELOPING.md#storybook) — Build, browser review, and visual tests
+- [maintain-storybook skill](../../.agents/skills/maintain-storybook/SKILL.md)
+- [review-storybook skill](../../.agents/skills/review-storybook/SKILL.md)
+
+---
+
+## 🚀 快速开始
+
+### Maintenance commands
 
 After installing workspace dependencies:
 
@@ -89,3 +143,17 @@ Use the existing [Storybook workflow](../../doc/DEVELOPING.md#storybook) for bui
 browser review, and visual tests. Report source inspection, rendering, `play`
 assertions, visual comparisons and production acceptance separately. Do not publish
 new visual baselines just to make catalog maintenance pass.
+
+---
+
+## ⚙️ 技术栈
+
+| Layer | Technology |
+|-------|-----------|
+| Story format | CSF (Component Story Format) |
+| Catalog format | JSON (`catalog.json`) |
+| Index generation | Node.js script (`scripts/storybook-catalog.mjs`) |
+| Validation | `scripts/storybook-catalog.test.mjs` |
+| Story location | `ui/storybook/stories/` |
+| Support modules | `ui/storybook/support/` |
+| Prototypes | `ui/storybook/prototypes/` |

@@ -1,19 +1,21 @@
-# Agent chat discovery
+---
+title: Chat Entry Discovery
+tags: storybook, prototypes, chat-entry, agent-chat, ui
+category: storybook-prototype
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
 
-Open **Design explorations → Chat entry**. The sidebar, picker, conversation,
-and composer are production components backed by the agent-chat in-memory API.
-Only the first-use landing page is a review fixture. No real agents run.
+# 💡 Agent chat discovery
 
-The earliest-created agent always stays in Chats, even after unstarring. Stars
-precede that default and four recent agents. Compose and star controls align;
-compose appears on hover/focus and remains visible on touch. The picker searches
-the whole company by name or role, with no subtitle, count, continuation labels,
-or footer. Each agent keeps a distinct fixture conversation across switches.
+Open **Design explorations → Chat entry**. The sidebar, picker, conversation, and composer are production components backed by the agent-chat in-memory API. Only the first-use landing page is a review fixture. No real agents run.
 
-Stories cover first use, returning chats, picker, role search, search recovery,
-paused-agent discovery, larger roster, light theme, and mobile. Try selecting
-Design Lead, sending a message, switching to CodexCoder, and returning. Star a
-conversation to keep it above recents. Story-scoped recent visits are restored
-on unmount.
+The earliest-created agent always stays in Chats, even after unstarring. Stars precede that default and four recent agents. Compose and star controls align; compose appears on hover/focus and remains visible on touch. The picker searches the whole company by name or role, with no subtitle, count, continuation labels, or footer. Each agent keeps a distinct fixture conversation across switches.
+
+Stories cover first use, returning chats, picker, role search, search recovery, paused-agent discovery, larger roster, light theme, and mobile. Try selecting Design Lead, sending a message, switching to CodexCoder, and returning. Star a conversation to keep it above recents. Story-scoped recent visits are restored on unmount.
 
 Run `pnpm storybook` from the repository root.

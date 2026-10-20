@@ -1,8 +1,26 @@
+---
+title: "Hello World Example Plugin"
+tags: ["plugin", "example", "hello-world", "paperclip", "ui"]
+category: "example"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # @paperclipai/plugin-hello-world-example
+
+## 💡 概述
 
 First-party reference plugin showing the smallest possible UI extension.
 
-## What It Demonstrates
+---
+
+## ⚡ 功能
+
+### What It Demonstrates
 
 - a manifest with a `dashboardWidget` UI slot
 - `entrypoints.ui` wiring for plugin UI bundles
@@ -10,17 +28,40 @@ First-party reference plugin showing the smallest possible UI extension.
 - reading host context (`companyId`) from `PluginWidgetProps`
 - worker lifecycle hooks (`setup`, `onHealth`) for basic runtime observability
 
-## API Surface
+### API Surface
 
 - This example does not add custom HTTP endpoints.
 - The widget is discovered/rendered through host-managed plugin APIs (for example `GET /api/plugins/ui-contributions`).
 
-## Notes
+---
 
-This is intentionally simple and is designed as the quickest "hello world" starting point for UI plugin authors.
-It is a repo-local example plugin for development, not a plugin that should be assumed to ship in generic production builds.
+## 📊 指标
 
-## Local Install (Dev)
+「待补充」
+
+---
+
+## 🏛️ 设计
+
+This is intentionally simple and is designed as the quickest "hello world" starting point for UI plugin authors. It is a repo-local example plugin for development, not a plugin that should be assumed to ship in generic production builds.
+
+---
+
+## 📁 目录
+
+「待补充」
+
+---
+
+## 🔗 资源
+
+「待补充」
+
+---
+
+## 🚀 快速开始
+
+### Local Install (Dev)
 
 From the repo root, build the plugin and install it by local path:
 
@@ -36,3 +77,11 @@ npx paperclipai plugin install ./packages/plugins/examples/plugin-hello-world-ex
 - **Reinstall after pulling.** If you installed a plugin by local path before the server stored `package_path`, the plugin may show status **error** (worker not found). Uninstall and install again so the server persists the path and can activate the plugin:  
   `npx paperclipai plugin uninstall paperclip.hello-world-example --force` then  
   `npx paperclipai plugin install ./packages/plugins/examples/plugin-hello-world-example`.
+
+---
+
+## ⚙️ 技术栈
+
+- Runtime: Node.js
+- Plugin SDK: `@paperclipai/plugin-sdk`
+- UI: React

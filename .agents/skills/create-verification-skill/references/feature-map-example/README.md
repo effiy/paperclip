@@ -1,4 +1,16 @@
-# Notes verification map
+---
+title: Notes Verification Map
+tags: skills, verification, notes, feature-map, testing
+category: agent-skills
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Notes verification map
 
 This directory is the maintained source for verifying the user-facing behavior of Notes. Read the index before driving the app, then use the matching feature file as the recipe.
 

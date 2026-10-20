@@ -1,9 +1,18 @@
-# Instruction working-copy acceptance
+---
+title: Instruction Working-Copy Acceptance
+tags: tests, e2e, instruction, working-copy, acceptance
+category: tests
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
 
-Run a disposable server with an instruction-capable fixture around the real
-process adapter. The capability override exists only in this launcher. The child
-reads and edits its registered private copy and completes a task through the
-run-scoped API. No provider calls are made.
+# 💡 Instruction working-copy acceptance
+
+Run a disposable server with an instruction-capable fixture around the real process adapter. The capability override exists only in this launcher. The child reads and edits its registered private copy and completes a task through the run-scoped API. No provider calls are made.
 
 ```sh
 node cli/node_modules/tsx/dist/cli.mjs tests/e2e/instruction-working-copy/launch.ts
@@ -16,9 +25,4 @@ INSTRUCTION_COPY_TEST_URL=http://127.0.0.1:3100 \
 pnpm exec playwright test --config tests/e2e/instruction-working-copy/playwright.config.ts
 ```
 
-The browser checks completed tasks across two turns, exact saved bytes through
-the agent-file API, the next process's restored contents, each run's save receipt,
-and private-copy cleanup. The fixture refuses non-loopback servers and requires
-its dedicated company. Screenshots and failure traces are in
-`test-results/instruction-working-copy`. Stop the launcher with Ctrl-C; its
-isolated data remains available for inspection.
+The browser checks completed tasks across two turns, exact saved bytes through the agent-file API, the next process's restored contents, each run's save receipt, and private-copy cleanup. The fixture refuses non-loopback servers and requires its dedicated company. Screenshots and failure traces are in `test-results/instruction-working-copy`. Stop the launcher with Ctrl-C; its isolated data remains available for inspection.

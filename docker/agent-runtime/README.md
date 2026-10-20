@@ -1,8 +1,28 @@
+---
+title: "Agent Runtime Image Family"
+tags: ["docker", "agent-runtime", "sandbox", "container-images"]
+category: "infrastructure"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # Agent Runtime Image Family
+
+---
+
+## 💡 概述
 
 Container images for running coding-agent harnesses in sandboxed environments (for example the kubernetes sandbox provider, stage 1 of the k8s contribution). Images are named `agent-runtime-{harness}:{version}` and published to `ghcr.io/paperclipai/` by the `agent-runtime-images` workflow. The registry is overridable: every reference flows through the `REGISTRY` bake variable.
 
-## Image Lineup
+---
+
+## ⚡ 功能
+
+### Image Lineup
 
 - **`agent-runtime-base`**: Foundation. Ubuntu 22.04 + Node 24 + git + tini + non-root user (uid 1000) + the agent shim.
 - **`agent-runtime-opencode`**: Extends base with `opencode-ai` globally installed.
@@ -12,7 +32,30 @@ Container images for running coding-agent harnesses in sandboxed environments (f
 - **`agent-runtime-claude`**: Extends base with `@anthropic-ai/claude-code` (symlinked as `claude-code`).
 - **`agent-runtime-hermes`**: Dockerfile included in the bake group, not in the default publish scope (stub until a CLI package exists).
 
-## Base Image Contents
+### Agent Container (paperclip-agent-shim)
+
+The main agent process runs as the shim (PID 1 under tini). The shim:
+
+1. Reads `/run/paperclip/runtime-command.json` (path overridable via `-spec`), a JSON file mounted by whatever schedules the run
+2. Parses `{ "command", "args" }`: the harness CLI and arguments
+3. Resolves the command on PATH and `syscall.Exec`s it, replacing itself
+4. SIGTERM from the kubelet propagates directly to the harness (no zombie processes)
+
+**runtime-command.json Contract:**
+```json
+{
+  "command": "claude-code",
+  "args": ["--token", "xyz", "--workspace", "/workspace"]
+}
+```
+
+The shim makes no assumptions about command structure; it is harness-agnostic. New harnesses swap the command/args; the base image stays the same.
+
+---
+
+## 🏛️ 设计
+
+### Base Image Contents
 
 **OS & Runtime:**
 - Ubuntu 22.04
@@ -38,7 +81,47 @@ exec path sources `nvm`. For the full exec-path contract, see
 - `ENTRYPOINT`: `/usr/bin/tini --` (PID-1 reaper, forwards signals)
 - `CMD`: `/usr/local/bin/paperclip-agent-shim`
 
-## Building Locally
+### Security Model
+
+- **Non-root execution**: user 1000:1000, no capability grants
+- **PSS Restricted compatible**: no privileged containers, no host mounts; works with a read-only root filesystem (writable `/workspace` + `/tmp` mounts)
+- **No secrets baked in**: API tokens and credentials come from per-run ephemeral Secrets mounted as env vars or files
+- **Image signing**: cosign keyless OIDC in the publish workflow
+
+---
+
+## 📁 目录
+
+```
+docker/agent-runtime/
+├── README.md                   # This file
+├── buildx-bake.hcl             # Bake file for all image targets
+├── Dockerfile                  # Base image definition
+├── Dockerfile.opencode         # OpenCode variant
+├── Dockerfile.pi               # Pi variant
+├── Dockerfile.codex            # Codex variant
+├── Dockerfile.gemini           # Gemini variant
+├── Dockerfile.claude           # Claude variant
+└── Dockerfile.hermes           # Hermes variant (stub)
+```
+
+---
+
+## 🔗 资源
+
+### Publishing
+
+`.github/workflows/agent-runtime-images.yml` builds and pushes the default scope (base, opencode, pi, codex, gemini, claude) on `workflow_dispatch` (with an explicit version tag) or on pushes to `master` touching these paths, then signs each digest with cosign keyless OIDC.
+
+### Upstream references
+
+- [SANDBOX-REQUIREMENTS.md](../../packages/plugins/sandbox-providers/SANDBOX-REQUIREMENTS.md) — Full exec-path contract for sandbox providers
+
+---
+
+## 🚀 快速开始
+
+### Building Locally
 
 All targets build `linux/amd64` by default (see `buildx-bake.hcl`). Derived images chain off the `base` target through bake `contexts`, so the literal registry in each `FROM` line is overridden at build time and the whole family builds in one pass without pushing intermediates.
 
@@ -46,14 +129,14 @@ All targets build `linux/amd64` by default (see `buildx-bake.hcl`). Derived imag
 docker buildx bake -f docker/agent-runtime/buildx-bake.hcl --load
 ```
 
-### Custom tag or registry
+#### Custom tag or registry
 
 ```bash
 REGISTRY=myregistry VERSION=mytag \
   docker buildx bake -f docker/agent-runtime/buildx-bake.hcl --load
 ```
 
-## Quickstart Smoke Test
+### Quickstart Smoke Test
 
 Build and verify the `agent-runtime-claude` image runs locally:
 
@@ -62,32 +145,17 @@ docker buildx bake -f docker/agent-runtime/buildx-bake.hcl base claude --load
 docker run --rm ghcr.io/paperclipai/agent-runtime-claude:dev claude-code --version
 ```
 
-## Agent Container (paperclip-agent-shim)
+---
 
-The main agent process runs as the shim (PID 1 under tini). The shim:
+## ⚙️ 技术栈
 
-1. Reads `/run/paperclip/runtime-command.json` (path overridable via `-spec`), a JSON file mounted by whatever schedules the run
-2. Parses `{ "command", "args" }`: the harness CLI and arguments
-3. Resolves the command on PATH and `syscall.Exec`s it, replacing itself
-4. SIGTERM from the kubelet propagates directly to the harness (no zombie processes)
-
-**runtime-command.json Contract:**
-```json
-{
-  "command": "claude-code",
-  "args": ["--token", "xyz", "--workspace", "/workspace"]
-}
-```
-
-The shim makes no assumptions about command structure; it is harness-agnostic. New harnesses swap the command/args; the base image stays the same.
-
-## Security Model
-
-- **Non-root execution**: user 1000:1000, no capability grants
-- **PSS Restricted compatible**: no privileged containers, no host mounts; works with a read-only root filesystem (writable `/workspace` + `/tmp` mounts)
-- **No secrets baked in**: API tokens and credentials come from per-run ephemeral Secrets mounted as env vars or files
-- **Image signing**: cosign keyless OIDC in the publish workflow
-
-## Publishing
-
-`.github/workflows/agent-runtime-images.yml` builds and pushes the default scope (base, opencode, pi, codex, gemini, claude) on `workflow_dispatch` (with an explicit version tag) or on pushes to `master` touching these paths, then signs each digest with cosign keyless OIDC.
+| Layer | Technology |
+|-------|-----------|
+| Base OS | Ubuntu 22.04 |
+| Runtime | Node.js 24 (NodeSource APT) |
+| Init | tini (PID-1) |
+| Agent shim | Go binary (`tools/agent-shim/`) |
+| Build system | Docker Buildx + Bake (HCL) |
+| Registry | ghcr.io/paperclipai/ |
+| Signing | cosign keyless OIDC |
+| User | Non-root (uid/gid 1000) |

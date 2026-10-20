@@ -1,4 +1,20 @@
-# Paperclip maps
+---
+title: "Maps"
+tags: ["maps", "features", "agent-access", "contract", "verification"]
+category: "documentation"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
+# Paperclip Maps
+
+---
+
+## 💡 概述
 
 The maps describe the same capabilities from two perspectives:
 
@@ -13,7 +29,11 @@ identifies the same capability in both maps. Product behavior remains governed b
 [the implementation spec](../doc/SPEC-implementation.md); a map cannot grant
 authority or redefine a permission denial as success.
 
-## Access contract
+---
+
+## ⚡ 功能
+
+### Access contract
 
 Every business operation needs both an API and a usable agent entry point for an
 actor authorized to perform it. A dedicated tool is optional when REST, the CLI,
@@ -59,7 +79,11 @@ record disagreements rather than using them as proof of access. Native API
 fallback restrictions, tool field/scope limits, and rollout settings are part of
 the agent path, even when a legacy agent can call the REST endpoint directly.
 
-## Companion file format
+---
+
+## 🏛️ 设计
+
+### Companion file format
 
 Each `agent-access-map/<area>.md` has an H1, a relative link to its product file,
 review date and source commit, followed by one H2 backticked ID per product
@@ -79,8 +103,9 @@ For an operation-reviewed capability, use H3 backticked operation IDs and repeat
 API, Agent access, Policy, Evidence, Verification and Gaps for each operation.
 Use small operation names such as `create`, `update`, `read`, or `run-now`.
 The enclosing capability has `Review: operation-reviewed` only after its
-meaningful operations have been enumerated. The following excerpt shows one
-operation; include the others before using that review label:
+meaningful operations have been enumerated.
+
+### Example excerpt
 
 ```markdown
 ## `definition`
@@ -100,7 +125,40 @@ agent; inspect saved configuration, attribution and retry behavior.
 Gaps: default native create path; verify using the real permitted agent context.
 ```
 
-## Keeping the maps synchronized
+---
+
+## 📁 目录
+
+```
+maps/
+├── README.md                        # This file (map contract)
+├── feature-map/
+│   ├── README.md                    # Feature map index (35 feature families)
+│   ├── coverage.json                # UI coverage inventory
+│   ├── onboarding.md
+│   ├── access.md
+│   ├── companies.md
+│   ├── tasks.md
+│   ├── ...                          # Remaining area recipes
+│   └── developer-labs.md
+├── agent-access-map/
+│   ├── README.md                    # Agent access map index (171 sub-features)
+│   ├── access.md
+│   ├── activity.md
+│   ├── ...                          # Remaining area files
+│   └── workspaces.md
+└── storybook-map/
+    ├── README.md
+    ├── INDEX.md
+    ├── REVIEW.md
+    └── catalog.json
+```
+
+---
+
+## 🔗 资源
+
+### Keeping the maps synchronized
 
 When a change adds/removes a capability or changes its behavior, API, permission,
 tool binding, CLI support, or work mode, update the affected companion and product
@@ -114,6 +172,8 @@ checks real agent reachability, and records product gaps without implementing
 them during a maintenance pass. The creation skill uses this structure.
 [verify-paperclip](../.agents/skills/verify-paperclip/SKILL.md) consumes the relevant
 recipes and reports evidence/drift; map editing belongs to maintenance.
+
+### Structural check
 
 Run the structural check after map changes:
 
@@ -133,3 +193,36 @@ owner, missing grant, invalid run, restricted mode or resolver). Mutations also
 need persisted state/attribution and retry behavior. Capture evidence using the
 [existing artifact workflow](../doc/AGENT-ARTIFACTS.md); keep executed run results
 separate from product-map `coverage.json`, which records documentation scope.
+
+---
+
+## 🚀 快速开始
+
+### When you add or change a capability
+
+1. Update the product map recipe (`feature-map/<area>.md`)
+2. Update the agent access companion (`agent-access-map/<area>.md`) with API and permission changes
+3. Preserve IDs across renames where the capability is unchanged
+4. Update both indexes and cross-links together
+5. Run `node scripts/check-maps.mjs` to validate structure
+6. Keep `coverage.json` in sync with page inventory changes
+
+### When reviewing access
+
+1. Open the agent access companion for the capability
+2. Read Policy and Gaps before selecting a path
+3. Use actual agent identity, target and work mode
+4. Record evidence per the evidence contract
+
+---
+
+## ⚙️ 技术栈
+
+| Layer | Technology |
+|-------|-----------|
+| Format | Markdown with structured YAML-like fields |
+| Validation | `node scripts/check-maps.mjs` |
+| Evidence tracking | source-only / verified / failed / blocked / not-run |
+| Review depth | baseline / operation-reviewed |
+| Agent access states | available / partial / missing / restricted / operator-only / not-applicable / unreviewed |
+| API states | present / missing / not-applicable / unreviewed |

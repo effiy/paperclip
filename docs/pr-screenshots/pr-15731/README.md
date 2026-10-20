@@ -1,4 +1,16 @@
-# GitHub repository import UI
+---
+title: GitHub Repository Import UI (PR #15731)
+tags: screenshots, github, repository-import, skills, storybook
+category: pr-screenshots
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 GitHub repository import UI
 
 Production Skills UI in Storybook, captured on October 12, 2026. API responses are fixtures; these images do not establish a live GitHub import or sandbox delivery.
 

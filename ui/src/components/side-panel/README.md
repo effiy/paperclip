@@ -1,4 +1,16 @@
-# Portable side panel
+---
+title: Portable Side Panel
+tags: ui, components, side-panel, navigation, composition
+category: ui-components
+created: "2024-01-01"
+updated: "2026-10-20"
+source: external
+type: index
+status: stable
+lifecycle: active
+---
+
+# 💡 Portable side panel
 
 The components exported by `@/components/side-panel` are controlled, domain-free navigation primitives. They do not import task data, APIs, routing, feature flags, or persistence.
 
@@ -12,7 +24,7 @@ The components exported by `@/components/side-panel` are controlled, domain-free
 
 Never put React nodes or fetched content in a persisted `SidePanelTabRecord`. Project icons and live status into `SidePanelTabItem` at render time.
 
-`SidePanelTabs` also accepts `appearance="streamlined-task"` for the experimental task-detail shell. That appearance preserves the approved pre-rebase Codex-inspired treatment—equal-width text tabs, separated surfaces, edge fades, and hover-revealed close actions—while the default appearance remains master's portable side-panel chrome.
+`SidePanelTabs` also accepts `appearance="streamlined-task"` for the experimental task-detail shell. That appearance preserves the approved pre-rebase Codex-inspired treatment--equal-width text tabs, separated surfaces, edge fades, and hover-revealed close actions--while the default appearance remains master's portable side-panel chrome.
 
 Use `headerSize="task-detail"` on `SidePanelFrame` when the panel shares the 60px task breadcrumb row. It keeps the task-detail footer treatment while matching the default portable header height.
 

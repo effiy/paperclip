@@ -1,4 +1,20 @@
+---
+title: "CreateOS Sandbox Provider Plugin"
+tags: ["createos", "sandbox", "provider", "plugin", "paperclip"]
+category: "sandbox-provider"
+created: "2024-01-01"
+updated: "2026-10-20"
+source: "external"
+type: "index"
+status: "stable"
+lifecycle: "active"
+---
+
 # `@paperclipai/plugin-createos`
+
+---
+
+## 💡 概述
 
 CreateOS sandbox provider for Paperclip. This package lives alongside Daytona
 and E2B, outside the root pnpm workspace, and uses CreateOS's public HTTP API.
@@ -7,41 +23,51 @@ part of this change; use a local-path install for development. Its release
 manifest entry has `publishFromCi: false` until a maintainer bootstraps the first
 npm publish and enables CI publishing.
 
-## Build and install locally
+---
 
-Requires Node 24.11+, pnpm, and an installed Paperclip checkout.
+## ⚡ 功能
 
-```sh
-cd packages/plugins/sandbox-providers/createos
-pnpm install --ignore-workspace --no-lockfile
-pnpm typecheck
-pnpm test
-pnpm build
-```
+### Implemented behavior
 
-From the Paperclip checkout, with your instance running:
+- Company/environment-bound lease metadata and a random workspace marker checked before a resumed lease is trusted. API keys are not lease metadata.
+- State-aware pause/resume with bounded polling. Transient errors are surfaced; only missing/terminal sandboxes or a mismatched workspace expire a resume.
+- Managed pipe processes with explicit working directory, quoted arguments, per-command environment, staged stdin, and separate stdout/stderr. Per-command variables are applied by the command wrapper; CreateOS's API-level environment overrides only accept keys declared at sandbox creation.
+- Incremental output via replayable NDJSON, bounded reconnect attempts, UTF-8 decoding across frame boundaries, and explicit errors for missing output. Returned stdout/stderr each retain at most 4 Mi characters of tail output; `metadata.outputTruncated` reports truncation. Live log chunks are still delivered as they arrive.
+- API requests to each endpoint are spaced by at least 300 ms across this worker's leases, keeping callback polling below the provider's 300/minute IP limit. Other workers or applications sharing the same IP can still exhaust that shared limit.
+- Command timeout and active lease-release/shutdown cancellation explicitly terminate the process tree. Disconnecting the stream alone is not cancellation. Unknown process-creation outcomes and failed process cleanup prevent reuse in the current worker; the operator/host must destroy the affected lease. No automatic retry of process creation or command execution occurs.
+- Workspace realization at `/paperclip-workspace` and native binary file sync, including directory archives, file modes, exclusions, symlink containment, atomic file downloads, and ordered post-upload commands. This keeps bulk data out of CreateOS's 1 MiB managed-process output journal. Ordinary command output still uses that journal and fails explicitly if unread data is evicted. Outbound archives are validated before extraction and limited to 10 GiB of declared file data; absolute/traversing paths and escaping links are rejected.
 
-```sh
-node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin install /absolute/path/to/paperclip/packages/plugins/sandbox-providers/createos
-node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin list
-node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin inspect paperclip.createos-sandbox-provider
-```
+### Capability boundaries
 
-Rebuild after source changes; local plugin output watching reloads the worker.
-If the running worker still uses the previous build, explicitly reload it when
-no sandbox commands are active:
+Interactive login PTYs, temporary login leases, snapshot capture,
+duplex channels, and provider WebSocket ingress are not advertised.
+CreateOS idle auto-pause is not a guaranteed absolute expiry, so acquisition
+with `requestedExpiresAt` fails before provisioning a resource.
 
-```sh
-node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin disable paperclip.createos-sandbox-provider
-node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin enable paperclip.createos-sandbox-provider
-```
+The host has an outbound-WSS native runner path for providers without ingress.
+Using it additionally requires a reachable Paperclip runner endpoint and the
+host's qualified runner/provider artifacts. This plugin's local tests do not
+constitute an end-to-end native runner qualification.
 
-The plugin uses the same package entrypoints and publish manifest helper as
-other sandbox providers. Plugin workers are trusted code on the Paperclip host.
+Sandbox create has no idempotency key in the inspected API. If its response is
+lost before an ID arrives, the plugin cannot identify that resource for cleanup;
+inspect the provider account before retrying an ambiguous creation. A plugin
+crash also loses its in-memory command tracking; durable lease recovery remains
+host-owned. This version does not claim a provider-side expiration guarantee.
 
-## Configure an environment
+---
 
-Configure the provider under **Instance Settings → Environments**. The plugin
+## 📊 指标
+
+待补充
+
+---
+
+## 🏛️ 设计
+
+### Configuration
+
+Configure the provider under **Instance Settings -> Environments**. The plugin
 has no custom UI. Required fields:
 
 - `apiUrl`: defaults to `https://api.sb.createos.sh`. A trailing `/v1`
@@ -73,57 +99,62 @@ Optional fields:
 The probe creates a sandbox, prepares its workspace, executes a managed
 command, and deletes the sandbox. It therefore uses real provider resources.
 
-## Implemented behavior
+### Optional managed-image inclusion
 
-- Company/environment-bound lease metadata and a random workspace marker
-  checked before a resumed lease is trusted. API keys are not lease metadata.
-- State-aware pause/resume with bounded polling. Transient errors are surfaced;
-  only missing/terminal sandboxes or a mismatched workspace expire a resume.
-- Managed pipe processes with explicit working directory, quoted arguments,
-  per-command environment, staged stdin, and separate stdout/stderr.
-  Per-command variables are applied by the command wrapper; CreateOS's API-level
-  environment overrides only accept keys declared at sandbox creation.
-- Incremental output via replayable NDJSON, bounded reconnect attempts, UTF-8
-  decoding across frame boundaries, and explicit errors for missing output.
-  Returned stdout/stderr each retain at most 4 Mi characters of tail output;
-  `metadata.outputTruncated` reports truncation. Live log chunks are still
-  delivered as they arrive.
-- API requests to each endpoint are spaced by at least 300 ms across this
-  worker's leases, keeping callback polling below the provider's 300/minute
-  IP limit. Other workers or applications sharing the same IP can still
-  exhaust that shared limit.
-- Command timeout and active lease-release/shutdown cancellation explicitly
-  terminate the process tree. Disconnecting the stream alone is not cancellation.
-  Unknown process-creation outcomes and failed process cleanup prevent reuse
-  in the current worker; the operator/host must destroy the affected lease.
-  No automatic retry of process creation or command execution occurs.
-- Workspace realization at `/paperclip-workspace` and native binary file sync,
-  including directory archives, file modes, exclusions, symlink containment,
-  atomic file downloads, and ordered post-upload commands. This keeps bulk data
-  out of CreateOS's 1 MiB managed-process output journal. Ordinary command
-  output still uses that journal and fails explicitly if unread data is evicted.
-  Outbound archives are validated before extraction and limited to 10 GiB of
-  declared file data; absolute/traversing paths and escaping links are rejected.
+The bundled catalog key is `createos`. Include the `createos` directory in the
+Docker `CLOUD_BUNDLED_PLUGINS` build argument, then include `createos` in the
+managed configuration's `plugins.autoInstall` list. Adding the catalog entry
+does not auto-install the plugin or change the default image contents.
 
-## Capability boundaries
+---
 
-Interactive login PTYs, temporary login leases, snapshot capture,
-duplex channels, and provider WebSocket ingress are not advertised.
-CreateOS idle auto-pause is not a guaranteed absolute expiry, so acquisition
-with `requestedExpiresAt` fails before provisioning a resource.
+## 📁 目录
 
-The host has an outbound-WSS native runner path for providers without ingress.
-Using it additionally requires a reachable Paperclip runner endpoint and the
-host's qualified runner/provider artifacts. This plugin's local tests do not
-constitute an end-to-end native runner qualification.
+待补充
 
-Sandbox create has no idempotency key in the inspected API. If its response is
-lost before an ID arrives, the plugin cannot identify that resource for cleanup;
-inspect the provider account before retrying an ambiguous creation. A plugin
-crash also loses its in-memory command tracking; durable lease recovery remains
-host-owned. This version does not claim a provider-side expiration guarantee.
+---
 
-## Opt-in live smoke
+## 🔗 资源
+
+待补充
+
+---
+
+## 🚀 快速开始
+
+### Build and install locally
+
+Requires Node 24.11+, pnpm, and an installed Paperclip checkout.
+
+```sh
+cd packages/plugins/sandbox-providers/createos
+pnpm install --ignore-workspace --no-lockfile
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+From the Paperclip checkout, with your instance running:
+
+```sh
+node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin install /absolute/path/to/paperclip/packages/plugins/sandbox-providers/createos
+node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin list
+node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin inspect paperclip.createos-sandbox-provider
+```
+
+Rebuild after source changes; local plugin output watching reloads the worker.
+If the running worker still uses the previous build, explicitly reload it when
+no sandbox commands are active:
+
+```sh
+node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin disable paperclip.createos-sandbox-provider
+node cli/node_modules/tsx/dist/cli.mjs cli/src/index.ts plugin enable paperclip.createos-sandbox-provider
+```
+
+The plugin uses the same package entrypoints and publish manifest helper as
+other sandbox providers. Plugin workers are trusted code on the Paperclip host.
+
+### Opt-in live smoke
 
 Default tests use mocked HTTP responses and do not contact CreateOS. To test a
 chosen endpoint, export `CREATEOS_API_URL`, `CREATEOS_API_KEY`, `CREATEOS_SHAPE`,
@@ -138,9 +169,12 @@ sync, checks stdin/env/output, writes a file, pauses
 and resumes the sandbox, verifies the file, and deletes it in `finally`.
 It does not print credentials. Cleanup errors fail the test.
 
-## Optional managed-image inclusion
+---
 
-The bundled catalog key is `createos`. Include the `createos` directory in the
-Docker `CLOUD_BUNDLED_PLUGINS` build argument, then include `createos` in the
-managed configuration's `plugins.autoInstall` list. Adding the catalog entry
-does not auto-install the plugin or change the default image contents.
+## ⚙️ 技术栈
+
+- Paperclip Plugin SDK
+- CreateOS public HTTP API
+- Node 24.11+
+- `tar` library (local archives)
+- pnpm (standalone package, excluded from monorepo workspace)
